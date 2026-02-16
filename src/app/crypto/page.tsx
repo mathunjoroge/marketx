@@ -1,0 +1,21 @@
+'use client';
+
+import AssetCard from '@/components/AssetCard';
+import { useMarket } from '@/context/MarketContext';
+import { getFeaturedAssets } from '@/lib/offers';
+
+export default function CryptoPage() {
+    const { country } = useMarket();
+    const crypto = getFeaturedAssets(country).filter(a => a.assetClass === 'crypto');
+
+    return (
+        <div>
+            <h1 className="text-3xl font-bold mb-8">Cryptocurrencies ({country})</h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {crypto.length > 0 ? crypto.map(item => (
+                    <AssetCard key={item.symbol} {...item} />
+                )) : <div className="col-span-full p-8 text-center text-gray-500">No crypto assets featured for this region.</div>}
+            </div>
+        </div>
+    );
+}

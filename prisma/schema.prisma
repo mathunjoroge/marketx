@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  SUPER_ADMIN
+  MARKET_ADMIN
+  COMPLIANCE_OFFICER
+  SUPPORT_AGENT
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum TradeSide {
+  LONG
+  SHORT
+}
+
+enum TradeStatus {
+  OPEN
+  CLOSED
+}
+
+enum ExitReason {
+  TAKE_PROFIT
+  STOP_LOSS
+  MANUAL
+  TRAILING_STOP
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  name          String?
+  password      String
+  role          UserRole   @default(USER)
+  status        UserStatus @default(ACTIVE)
+  statusReason  String?
+  image         String?
+  emailVerified DateTime?
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean  @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  credentials      UserCredentials?
+  settings         UserSettings?
+  watchlists       Watchlist[]
+  sessions         Session[]
+  accounts         Account[]
+  trades           Trade[]
+  auditActorLogs   AuditLog[]      @relation("AuditActor")
+  auditTargetLogs  AuditLog[]      @relation("AuditTarget")
+  featuredAssets   FeaturedAsset[]
+  announcements    Announcement[]
+  notifications    Notification[]
+}
+
+model UserCredentials {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alpacaKeyId       String
+  alpacaSecret      String
+  alpacaPaper       Boolean  @default(true)
+  fmpApiKey         String?
+  finnhubApiKey     String?
+  eodhdApiKey       String?
+  ipinfoToken       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model UserSettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultRiskPercent    Float    @default(1.0)
+  maxPositionSize       Float    @default(10.0)
+  maxPortfolioHeat      Float    @default(20.0)
+  theme                 String   @default("dark")
+  defaultTimeframe      String   @default("1D")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  symbols   String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  
+  @@unique([identifier, token])
+}
+
+model Trade {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  symbol      String
+  qty         Float
+  entryPrice  Float
+  exitPrice   Float?
+  pnl         Float?
+  pnlPercent  Float?
+  
+  side        TradeSide
+  status      TradeStatus
+  
+  entryTime   DateTime    @default(now())
+  exitTime    DateTime?
+  
+  exitReason  ExitReason?
+  notes       String?
+  
+  entryOrderId String?
+  exitOrderId  String?
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tags        String[]
+  strategy    String?
+  rating      Int?
+
+  @@index([userId])
+  @@index([symbol])
+  @@index([entryOrderId])
+  @@index([exitOrderId])
+  @@index([userId, symbol, status])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   Json?
+  actorId   String
+  actor     User     @relation("AuditActor", fields: [actorId], references: [id])
+  targetId  String?
+  target    User?    @relation("AuditTarget", fields: [targetId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([targetId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model FeaturedAsset {
+  id        String   @id @default(cuid())
+  symbol    String   @unique
+  name      String
+  category  String
+  reason    String?
+  addedById String
+  addedBy   User     @relation(fields: [addedById], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Announcement {
+  id        String    @id @default(cuid())
+  title     String
+  content   String
+  type      String    @default("info")
+  active    Boolean   @default(true)
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id])
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}
