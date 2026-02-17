@@ -172,6 +172,7 @@ export default function UserMenu() {
                             {[
                                 { href: '/profile', icon: User, label: 'Profile', desc: 'Account & API keys' },
                                 { href: '/portfolio', icon: Briefcase, label: 'Portfolio', desc: 'Positions & orders' },
+                                { href: '/finance', icon: BarChart3, label: 'Finance', desc: 'Income, goals & health' },
                                 { href: '/analytics', icon: BarChart3, label: 'Analytics', desc: 'Performance metrics' },
                                 { href: '/settings', icon: Settings, label: 'Settings', desc: 'Preferences' },
                                 ...(['SUPER_ADMIN', 'MARKET_ADMIN', 'COMPLIANCE_OFFICER', 'SUPPORT_AGENT'].includes((session?.user as any)?.role) ? [

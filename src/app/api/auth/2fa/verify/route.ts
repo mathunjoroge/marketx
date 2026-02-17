@@ -26,8 +26,13 @@ export async function POST(request: NextRequest) {
     }
 
 
-    const result = await verify({ token: code, secret: user.twoFactorSecret });
-    const isValid = typeof result === 'object' && result !== null && 'valid' in result ? (result as any).valid : result === true;
+    const result = await verify({
+        token: code,
+        secret: user.twoFactorSecret,
+        window: [1, 1], // Allow previous and next step
+    } as any);
+
+    const isValid = result && typeof result === 'object' ? result.valid : result === true;
 
     if (!isValid) {
         return NextResponse.json({ message: 'Invalid code' }, { status: 400 });

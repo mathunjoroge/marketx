@@ -13,6 +13,8 @@ import {
   Star,
   BarChart3,
   Shield,
+  Wallet,
+  Sparkles,
 } from 'lucide-react';
 
 const navLinks = [
@@ -21,6 +23,8 @@ const navLinks = [
   { name: 'Portfolio', path: '/portfolio', icon: Briefcase },
   { name: 'Watchlist', path: '/watchlist', icon: Star },
   { name: 'Analytics', path: '/analytics', icon: BarChart3 },
+  { name: 'Finance', path: '/finance', icon: Wallet },
+  { name: 'AI Advisor', path: '/advisor', icon: Sparkles },
 ];
 
 export default function MobileNav() {

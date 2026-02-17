@@ -39,59 +39,92 @@ enum ExitReason {
 }
 
 model User {
-  id            String     @id @default(cuid())
-  email         String     @unique
-  name          String?
-  password      String
-  role          UserRole   @default(USER)
-  status        UserStatus @default(ACTIVE)
-  statusReason  String?
-  image         String?
-  emailVerified DateTime?
+  id               String     @id @default(cuid())
+  email            String     @unique
+  name             String?
+  password         String
+  role             UserRole   @default(USER)
+  status           UserStatus @default(ACTIVE)
+  statusReason     String?
+  image            String?
+  emailVerified    DateTime?
   twoFactorSecret  String?
-  twoFactorEnabled Boolean  @default(false)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  
-  credentials      UserCredentials?
-  settings         UserSettings?
-  watchlists       Watchlist[]
-  sessions         Session[]
-  accounts         Account[]
-  trades           Trade[]
-  auditActorLogs   AuditLog[]      @relation("AuditActor")
-  auditTargetLogs  AuditLog[]      @relation("AuditTarget")
-  featuredAssets   FeaturedAsset[]
-  announcements    Announcement[]
-  notifications    Notification[]
+  twoFactorEnabled Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  credentials     UserCredentials?
+  settings        UserSettings?
+  watchlists      Watchlist[]
+  sessions        Session[]
+  accounts        Account[]
+  trades          Trade[]
+  auditActorLogs  AuditLog[]       @relation("AuditActor")
+  auditTargetLogs AuditLog[]       @relation("AuditTarget")
+  featuredAssets  FeaturedAsset[]
+  announcements   Announcement[]
+  notifications   Notification[]
+
+  // Fintech / Banking Features
+  stripeCustomerId   String?   @unique
+  subscriptionStatus String    @default("FREE")
+  subscriptionId     String?   @unique
+  subscriptionTier   String    @default("FREE") // FREE, PREMIUM, PRO
+  trialEndsAt        DateTime?
+  lifetimeValue      Float     @default(0)
+
+  bankAccounts          BankAccount[]
+  goals                 Goal[]
+  transactions          Transaction[]
+  plaidItems            PlaidItem[]
+  budgets               Budget[]
+  subscriptions         Subscription[]
+  recurringTransactions RecurringTransaction[]
+  healthScores          FinancialHealthScore[]
+  achievements          Achievement[]
+  reports               Report[]
+  savedFilters          SavedFilter[]
+  premiumReports        PremiumReport[]
+  affiliateClicks       AffiliateClick[]
+  affiliateConversions  AffiliateConversion[]
+  abtestAssignments     ABTestAssignment[]
+  abtestMetrics         ABTestMetric[]
+  aicfoSessions         AICFOSession[]
+  paywallInteractions   PaywallInteraction[]
 }
 
 model UserCredentials {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  alpacaKeyId       String
-  alpacaSecret      String
-  alpacaPaper       Boolean  @default(true)
-  fmpApiKey         String?
-  finnhubApiKey     String?
-  eodhdApiKey       String?
-  ipinfoToken       String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alpacaKeyId   String
+  alpacaSecret  String
+  alpacaPaper   Boolean  @default(true)
+  fmpApiKey     String?
+  finnhubApiKey String?
+  eodhdApiKey   String?
+  ipinfoToken   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model UserSettings {
-  id                    String   @id @default(cuid())
-  userId                String   @unique
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  defaultRiskPercent    Float    @default(1.0)
-  maxPositionSize       Float    @default(10.0)
-  maxPortfolioHeat      Float    @default(20.0)
-  theme                 String   @default("dark")
-  defaultTimeframe      String   @default("1D")
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultRiskPercent Float    @default(1.0)
+  maxPositionSize    Float    @default(10.0)
+  maxPortfolioHeat   Float    @default(20.0)
+  theme              String   @default("dark")
+  defaultTimeframe   String   @default("1D")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Fintech Preferences
+  currency            String  @default("USD")
+  lowBalanceThreshold Float?  @default(100)
+  budgetAlertEnabled  Boolean @default(true)
+  billReminderDays    Int     @default(3)
 }
 
 model Watchlist {
@@ -102,7 +135,7 @@ model Watchlist {
   symbols   String[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([userId])
 }
 
@@ -119,9 +152,9 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([provider, providerAccountId])
   @@index([userId])
 }
@@ -132,7 +165,7 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
 }
 
@@ -140,40 +173,40 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-  
+
   @@unique([identifier, token])
 }
 
 model Trade {
-  id          String      @id @default(cuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  symbol      String
-  qty         Float
-  entryPrice  Float
-  exitPrice   Float?
-  pnl         Float?
-  pnlPercent  Float?
-  
-  side        TradeSide
-  status      TradeStatus
-  
-  entryTime   DateTime    @default(now())
-  exitTime    DateTime?
-  
-  exitReason  ExitReason?
-  notes       String?
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  symbol     String
+  qty        Float
+  entryPrice Float
+  exitPrice  Float?
+  pnl        Float?
+  pnlPercent Float?
+
+  side   TradeSide
+  status TradeStatus
+
+  entryTime DateTime  @default(now())
+  exitTime  DateTime?
+
+  exitReason ExitReason?
+  notes      String?
+
   entryOrderId String?
   exitOrderId  String?
-  
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
 
-  tags        String[]
-  strategy    String?
-  rating      Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tags     String[]
+  strategy String?
+  rating   Int?
 
   @@index([userId])
   @@index([symbol])
@@ -234,4 +267,312 @@ model Notification {
 
   @@index([userId, read])
   @@index([userId, createdAt])
+}
+
+// FINTECH / BANKING MODELS
+
+model BankAccount {
+  id                    String                 @id @default(cuid())
+  userId                String
+  name                  String
+  type                  String
+  balance               Float                  @default(0)
+  currency              String                 @default("USD")
+  institution           String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  user                  User                   @relation(fields: [userId], references: [id])
+  transactions          Transaction[]
+  plaidItemId           String?
+  plaidAccountId        String?
+  plaidItem             PlaidItem?             @relation(fields: [plaidItemId], references: [id])
+  recurringTransactions RecurringTransaction[]
+}
+
+model PlaidItem {
+  id          String        @id @default(cuid())
+  userId      String
+  accessToken String
+  itemId      String        @unique
+  institution String?
+  status      String        @default("active")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id])
+  accounts    BankAccount[]
+}
+
+model Transaction {
+  id            String      @id @default(cuid())
+  userId        String
+  bankAccountId String
+  amount        Float
+  category      String
+  description   String
+  date          DateTime    @default(now())
+  type          String
+  createdAt     DateTime    @default(now())
+  bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
+  @@index([userId, category])
+}
+
+model Goal {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  targetAmount  Float
+  currentAmount Float     @default(0)
+  deadline      DateTime?
+  category      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id])
+}
+
+model Budget {
+  id        String   @id @default(cuid())
+  userId    String
+  category  String
+  amount    Float
+  period    String   @default("MONTHLY") // "MONTHLY", "WEEKLY", "YEARLY"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+  id              String   @id @default(cuid())
+  userId          String
+  name            String
+  amount          Float
+  currency        String   @default("USD")
+  frequency       String   @default("MONTHLY") // "MONTHLY", "YEARLY", "WEEKLY"
+  nextBillingDate DateTime
+  merchantName    String?
+  status          String   @default("ACTIVE") // "ACTIVE", "CANCELLED"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id])
+}
+
+model RecurringTransaction {
+  id             String      @id @default(cuid())
+  userId         String
+  templateName   String
+  amount         Float
+  category       String
+  description    String
+  type           String
+  frequency      String // DAILY, WEEKLY, MONTHLY, YEARLY
+  nextOccurrence DateTime
+  bankAccountId  String
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  user           User        @relation(fields: [userId], references: [id])
+  bankAccount    BankAccount @relation(fields: [bankAccountId], references: [id])
+
+  @@index([userId, nextOccurrence])
+  @@index([nextOccurrence, isActive])
+}
+
+model FinancialHealthScore {
+  id              String   @id @default(cuid())
+  userId          String
+  score           Int // 0-100
+  savingsRate     Float
+  debtRatio       Float
+  budgetAdherence Float
+  emergencyFund   Float
+  calculatedAt    DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, calculatedAt])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String // FIRST_BUDGET, GOAL_REACHED, STREAK_7_DAYS, etc.
+  title       String
+  description String
+  earnedAt    DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, earnedAt])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String // MONTHLY, YEARLY, TAX, CUSTOM
+  name        String
+  fileUrl     String
+  generatedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, generatedAt])
+}
+
+model SavedFilter {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  filterData Json // Stores filter configuration
+  type       String // TRANSACTION, BUDGET, GOAL
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, type])
+}
+
+model PremiumReport {
+  id           String    @id @default(cuid())
+  userId       String
+  type         String // TAX, NET_WORTH, ANNUAL_REVIEW
+  reportYear   Int?
+  fileUrl      String?
+  pdfPath      String?
+  generatedAt  DateTime  @default(now())
+  downloadedAt DateTime?
+  watermarked  Boolean   @default(false)
+  user         User      @relation(fields: [userId], references: [id])
+
+  @@index([userId, type, reportYear])
+}
+
+model AffiliateProduct {
+  id           String                @id @default(cuid())
+  name         String                @unique
+  category     String // HIGH_YIELD_SAVINGS, BALANCE_TRANSFER, DEBT_CONSOLIDATION
+  country      String                @default("US")
+  provider     String
+  description  String // @db.Text removed, Prisma handles String as Text mostly, or explicit needs native type
+  affiliateUrl String
+  commission   Float?
+  minScore     Int?
+  maxScore     Int?
+  isActive     Boolean               @default(true)
+  createdAt    DateTime              @default(now())
+  clicks       AffiliateClick[]
+  conversions  AffiliateConversion[]
+}
+
+model AffiliateClick {
+  id        String           @id @default(cuid())
+  userId    String
+  productId String
+  context   String?
+  clickedAt DateTime         @default(now())
+  ipAddress String?
+  user      User             @relation(fields: [userId], references: [id])
+  product   AffiliateProduct @relation(fields: [productId], references: [id])
+
+  @@index([userId, productId])
+  @@index([clickedAt])
+}
+
+model AffiliateConversion {
+  id          String           @id @default(cuid())
+  userId      String
+  productId   String
+  clickId     String?
+  revenue     Float
+  convertedAt DateTime         @default(now())
+  user        User             @relation(fields: [userId], references: [id])
+  product     AffiliateProduct @relation(fields: [productId], references: [id])
+
+  @@index([userId, productId])
+  @@index([convertedAt])
+}
+
+model ABTestExperiment {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  description String
+  startDate   DateTime        @default(now())
+  endDate     DateTime?
+  isActive    Boolean         @default(true)
+  variants    ABTestVariant[]
+  metrics     ABTestMetric[]
+}
+
+model ABTestVariant {
+  id           String             @id @default(cuid())
+  experimentId String
+  name         String
+  config       Json
+  trafficSplit Float              @default(0.5)
+  experiment   ABTestExperiment   @relation(fields: [experimentId], references: [id])
+  assignments  ABTestAssignment[]
+
+  @@index([experimentId])
+}
+
+model ABTestAssignment {
+  id         String        @id @default(cuid())
+  userId     String
+  variantId  String
+  assignedAt DateTime      @default(now())
+  user       User          @relation(fields: [userId], references: [id])
+  variant    ABTestVariant @relation(fields: [variantId], references: [id])
+
+  @@unique([userId, variantId])
+  @@index([userId])
+}
+
+model ABTestMetric {
+  id           String           @id @default(cuid())
+  experimentId String
+  userId       String
+  variantId    String
+  eventType    String
+  eventData    Json?
+  timestamp    DateTime         @default(now())
+  experiment   ABTestExperiment @relation(fields: [experimentId], references: [id])
+  user         User             @relation(fields: [userId], references: [id])
+
+  @@index([experimentId, eventType])
+  @@index([userId])
+}
+
+model AICFOSession {
+  id        String         @id @default(cuid())
+  userId    String
+  title     String?
+  startedAt DateTime       @default(now())
+  endedAt   DateTime?
+  user      User           @relation(fields: [userId], references: [id])
+  messages  AICFOMessage[]
+
+  @@index([userId, startedAt])
+}
+
+model AICFOMessage {
+  id        String       @id @default(cuid())
+  sessionId String
+  role      String
+  content   String
+  metadata  Json?
+  timestamp DateTime     @default(now())
+  session   AICFOSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, timestamp])
+}
+
+model PaywallInteraction {
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String
+  action    String
+  variantId String?
+  timestamp DateTime @default(now())
+  converted Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, feature])
+  @@index([feature, action, timestamp])
 }

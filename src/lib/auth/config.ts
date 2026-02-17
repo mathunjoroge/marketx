@@ -1,12 +1,12 @@
 import type { NextAuthConfig } from 'next-auth';
-import type { User } from '@prisma/client';
+import type { User as PrismaUser } from '@prisma/client';
 import Credentials from 'next-auth/providers/credentials';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/db/prisma';
 import { isAdminRole } from '@/lib/auth/roles';
 
-async function getUser(email: string): Promise<User | null> {
+async function getUser(email: string): Promise<PrismaUser | null> {
     try {
         const user = await prisma.user.findUnique({
             where: { email },
@@ -86,7 +86,11 @@ export const authConfig = {
         Credentials({
             async authorize(credentials) {
                 const parsedCredentials = z
-                    .object({ email: z.string().email(), password: z.string().min(6) })
+                    .object({
+                        email: z.string().email(),
+                        password: z.string().min(6),
+                        code: z.string().optional()
+                    })
                     .safeParse(credentials);
 
                 if (parsedCredentials.success) {
@@ -101,7 +105,33 @@ export const authConfig = {
                     }
 
                     const passwordsMatch = await bcrypt.compare(password, user.password);
-                    if (passwordsMatch) return user;
+                    if (!passwordsMatch) return null;
+
+                    // 2FA Verification
+                    if (user.twoFactorEnabled) {
+                        const { code } = parsedCredentials.data as any; // Type assertion as zod schema needs update
+                        if (!code) {
+                            console.log('2FA required but code missing');
+                            return null; // Or throw error? NextAuth creates generic error.
+                        }
+
+                        // Dynamically import otplib to avoid edge runtime issues if any (though bcrypt is here so it's Node)
+                        const { verify } = await import('otplib');
+                        const result = await verify({
+                            token: code,
+                            secret: user.twoFactorSecret!,
+                            window: [1, 1]
+                        } as any);
+
+                        const isValid = result && typeof result === 'object' ? result.valid : result === true;
+
+                        if (!isValid) {
+                            console.log('Invalid 2FA code');
+                            return null;
+                        }
+                    }
+
+                    return user;
                 }
 
                 console.log('Invalid credentials');

@@ -113,6 +113,9 @@ export default function RootLayout({
                               { name: 'Portfolio', path: '/portfolio' },
                               { name: 'Watchlist', path: '/watchlist' },
                               { name: 'Analytics', path: '/analytics' },
+                              { name: 'Finance', path: '/finance' },
+                              { name: 'Budgets', path: '/budgets' },
+                              { name: 'Advisor', path: '/advisor' },
                             ].map((link) => (
                               <Link
                                 key={link.path}
