@@ -2,8 +2,10 @@
 
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
-import { Save, Key, Settings, Shield, AlertCircle, CheckCircle, Loader2, Globe, CreditCard, Eye, EyeOff, Lock, Database, BarChart3 } from 'lucide-react';
+import { Save, Key, Settings, Shield, AlertCircle, CheckCircle, Loader2, Globe, CreditCard, Eye, EyeOff, Lock, Database, BarChart3, Search } from 'lucide-react';
 import AuthGuard from '@/components/auth/AuthGuard';
+import { CURRENCIES, Currency } from '@/lib/currencies';
+import CurrencyDropdown from './CurrencyDropdown';
 
 export default function ProfilePage() {
     const { data: session } = useSession();
@@ -16,6 +18,7 @@ export default function ProfilePage() {
     const [settings, setSettings] = useState({
         theme: 'dark',
         defaultRiskPercent: 1.0,
+        currency: 'USD',
     });
 
     // Credentials State
@@ -26,6 +29,7 @@ export default function ProfilePage() {
         finnhubApiKey: '',
         eodhdApiKey: '',
         ipinfoToken: '',
+        googleApiKey: '',
         hasAlpacaSecret: false,
     });
 
@@ -41,6 +45,7 @@ export default function ProfilePage() {
                     setSettings({
                         theme: data.theme || 'dark',
                         defaultRiskPercent: data.defaultRiskPercent || 1.0,
+                        currency: data.currency || 'USD',
                     });
                 }
 
@@ -54,6 +59,7 @@ export default function ProfilePage() {
                         finnhubApiKey: data.finnhubApiKey || '',
                         eodhdApiKey: data.eodhdApiKey || '',
                         ipinfoToken: data.ipinfoToken || '',
+                        googleApiKey: data.googleApiKey || '',
                         hasAlpacaSecret: data.hasAlpacaSecret || false,
                     });
                 }
@@ -101,9 +107,9 @@ export default function ProfilePage() {
             const payload: Record<string, string> = {
                 alpacaKeyId: credentials.alpacaKeyId,
                 fmpApiKey: credentials.fmpApiKey,
-                finnhubApiKey: credentials.finnhubApiKey,
                 eodhdApiKey: credentials.eodhdApiKey,
                 ipinfoToken: credentials.ipinfoToken,
+                googleApiKey: credentials.googleApiKey,
             };
 
             if (credentials.alpacaSecret) {
@@ -649,6 +655,25 @@ export default function ProfilePage() {
                                     </div>
                                 </div>
 
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    <label style={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: '600',
+                                        color: '#9ca3af',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        marginLeft: '0.125rem'
+                                    }}>
+                                        Base Currency
+                                    </label>
+                                    <div className="group" style={{ position: 'relative' }}>
+                                        <CurrencyDropdown
+                                            value={settings.currency}
+                                            onChange={(val) => setSettings({ ...settings, currency: val })}
+                                        />
+                                    </div>
+                                </div>
+
                                 <div style={{ paddingTop: '1rem' }}>
                                     <button
                                         type="submit"
@@ -844,10 +869,17 @@ export default function ProfilePage() {
                                             label="IPInfo Token"
                                             value={credentials.ipinfoToken}
                                             onChange={(v) => setCredentials({ ...credentials, ipinfoToken: v })}
-                                            icon={Globe}
-                                            isSecret
-                                            secretKey="ipinfo"
                                             accentColor="purple"
+                                        />
+                                        <InputField
+                                            label="Google API Key"
+                                            value={credentials.googleApiKey}
+                                            onChange={(v) => setCredentials({ ...credentials, googleApiKey: v })}
+                                            icon={Search}
+                                            isSecret
+                                            secretKey="googleApiKey"
+                                            accentColor="purple"
+                                            hint="Used for Google Gemini and other Google Cloud services"
                                         />
                                     </div>
                                 </div>
@@ -883,8 +915,8 @@ export default function ProfilePage() {
                             </form>
                         </div>
                     )}
-                </div>
-            </AuthGuard>
+                </div >
+            </AuthGuard >
         </>
     );
 }

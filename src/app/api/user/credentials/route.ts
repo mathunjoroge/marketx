@@ -12,6 +12,7 @@ const credentialsSchema = z.object({
     finnhubApiKey: z.string().optional(),
     eodhdApiKey: z.string().optional(),
     ipinfoToken: z.string().optional(),
+    googleApiKey: z.string().optional(),
 });
 
 /**
@@ -60,12 +61,13 @@ export async function GET(req: Request) {
         }
 
         // Decrypt keys in parallel for efficiency
-        const [alpacaKeyId, fmpApiKey, finnhubApiKey, eodhdApiKey, ipinfoToken] = await Promise.all([
+        const [alpacaKeyId, fmpApiKey, finnhubApiKey, eodhdApiKey, ipinfoToken, googleApiKey] = await Promise.all([
             safeDecrypt(credentials.alpacaKeyId, 'alpacaKeyId'),
             safeDecrypt(credentials.fmpApiKey, 'fmpApiKey'),
             safeDecrypt(credentials.finnhubApiKey, 'finnhubApiKey'),
             safeDecrypt(credentials.eodhdApiKey, 'eodhdApiKey'),
             safeDecrypt(credentials.ipinfoToken, 'ipinfoToken'),
+            safeDecrypt(credentials.googleApiKey, 'googleApiKey'),
         ]);
 
         // Return MASKED keys — never send full secrets over HTTP
@@ -76,6 +78,7 @@ export async function GET(req: Request) {
             finnhubApiKey: maskKey(finnhubApiKey),
             eodhdApiKey: maskKey(eodhdApiKey),
             ipinfoToken: maskKey(ipinfoToken),
+            googleApiKey: maskKey(googleApiKey),
         });
     } catch (error) {
         logger.error('Error fetching credentials', { error });
@@ -98,7 +101,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Invalid input', errors: result.error.issues }, { status: 400 });
         }
 
-        const { alpacaKeyId, alpacaSecret, fmpApiKey, finnhubApiKey, eodhdApiKey, ipinfoToken } = result.data;
+        const { alpacaKeyId, alpacaSecret, fmpApiKey, finnhubApiKey, eodhdApiKey, ipinfoToken, googleApiKey } = result.data;
 
         // Encrypt values
         const updateData: any = {};
@@ -108,6 +111,7 @@ export async function POST(req: Request) {
         if (finnhubApiKey) updateData.finnhubApiKey = await encrypt(finnhubApiKey);
         if (eodhdApiKey) updateData.eodhdApiKey = await encrypt(eodhdApiKey);
         if (ipinfoToken) updateData.ipinfoToken = await encrypt(ipinfoToken);
+        if (googleApiKey) updateData.googleApiKey = await encrypt(googleApiKey);
 
         const credentials = await prisma.userCredentials.upsert({
             where: { userId: session.user.id },
@@ -120,6 +124,7 @@ export async function POST(req: Request) {
                 finnhubApiKey: finnhubApiKey ? await encrypt(finnhubApiKey) : null,
                 eodhdApiKey: eodhdApiKey ? await encrypt(eodhdApiKey) : null,
                 ipinfoToken: ipinfoToken ? await encrypt(ipinfoToken) : null,
+                googleApiKey: googleApiKey ? await encrypt(googleApiKey) : null,
             },
         });
 

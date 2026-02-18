@@ -104,6 +104,7 @@ model UserCredentials {
   finnhubApiKey String?
   eodhdApiKey   String?
   ipinfoToken   String?
+  googleApiKey  String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

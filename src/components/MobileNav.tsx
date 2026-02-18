@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import CountrySelector from '@/components/CountrySelector';
 import {
   Menu,
   X,
@@ -31,7 +32,7 @@ export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const isAdmin = ['SUPER_ADMIN', 'MARKET_ADMIN', 'COMPLIANCE_OFFICER', 'SUPPORT_AGENT'].includes((session?.user as any)?.role);
 
@@ -212,6 +213,56 @@ export default function MobileNav() {
                 );
               })}
             </nav>
+
+            <div style={{ padding: '0.75rem', borderTop: '1px solid rgba(107,114,128,0.2)', marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Region</span>
+                <CountrySelector />
+              </div>
+
+              {status === 'unauthenticated' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  <Link
+                    href="/login"
+                    onClick={() => setIsOpen(false)}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'center',
+                      padding: '0.75rem',
+                      borderRadius: '0.75rem',
+                      backgroundColor: 'rgba(55,65,81,0.4)',
+                      color: 'white',
+                      fontSize: '0.9375rem',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      border: '1px solid rgba(107,114,128,0.2)'
+                    }}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setIsOpen(false)}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'center',
+                      padding: '0.75rem',
+                      borderRadius: '0.75rem',
+                      background: 'linear-gradient(to right, #2563eb, #4f46e5)',
+                      color: 'white',
+                      fontSize: '0.9375rem',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      boxShadow: '0 4px 6px -1px rgba(37,99,235,0.2)'
+                    }}
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}

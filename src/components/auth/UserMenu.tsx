@@ -26,67 +26,7 @@ export default function UserMenu() {
     }
 
     if (status === 'unauthenticated') {
-        return (
-            <>
-                <style>{`
-        .sign-in-link:hover {
-            color: white;
-            background-color: rgba(255,255,255,0.05);
-        }
-        .get-started-button:hover {
-            background: linear-gradient(to right, #3b82f6, #6366f1);
-            box-shadow: 0 10px 15px -3px rgba(99,102,241,0.3), 0 4px 6px -2px rgba(99,102,241,0.05);
-        }
-        .get-started-button:active {
-            transform: scale(0.98);
-        }
-    `}</style>
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem'
-                    }}
-                >
-                    <Link
-                        href="/login"
-                        className="sign-in-link"
-                        style={{
-                            color: 'white',
-                            fontSize: '1rem',
-                            fontWeight: '700',
-                            paddingLeft: '0.75rem',
-                            paddingRight: '0.75rem',
-                            paddingTop: '0.5rem',
-                            paddingBottom: '0.5rem',
-                            borderRadius: '0.5rem',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        Sign In
-                    </Link>
-                    <Link
-                        href="/register"
-                        className="get-started-button"
-                        style={{
-                            background: 'linear-gradient(to right, #2563eb, #4f46e5)',
-                            color: 'white',
-                            paddingLeft: '1rem',
-                            paddingRight: '1rem',
-                            paddingTop: '0.5rem',
-                            paddingBottom: '0.5rem',
-                            borderRadius: '0.75rem',
-                            fontSize: '0.875rem',
-                            fontWeight: '600',
-                            transition: 'all 0.2s',
-                            boxShadow: '0 10px 15px -3px rgba(37,99,235,0.2), 0 4px 6px -2px rgba(37,99,235,0.05)'
-                        }}
-                    >
-                        Get Started
-                    </Link>
-                </div>
-            </>
-        );
+        return null;
     }
 
     const initials = session?.user?.name

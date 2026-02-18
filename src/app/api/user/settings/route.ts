@@ -6,6 +6,7 @@ import { z } from 'zod';
 const settingsSchema = z.object({
     theme: z.enum(['light', 'dark', 'system']).optional(),
     defaultRiskPercent: z.number().min(0.1).max(10).optional(),
+    currency: z.string().optional(),
 });
 
 export async function GET(req: Request) {
@@ -42,18 +43,20 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Invalid input', errors: result.error.issues }, { status: 400 });
         }
 
-        const { theme, defaultRiskPercent } = result.data;
+        const { theme, defaultRiskPercent, currency } = result.data;
 
         const settings = await prisma.userSettings.upsert({
             where: { userId: session.user.id },
             update: {
                 ...(theme && { theme }),
                 ...(defaultRiskPercent !== undefined && { defaultRiskPercent }),
+                ...(currency && { currency }),
             },
             create: {
                 userId: session.user.id!,
                 theme: theme || 'dark',
                 defaultRiskPercent: defaultRiskPercent || 1.0,
+                currency: currency || 'USD',
             },
         });
 
