@@ -9,6 +9,14 @@ import { StackedEdgeResult } from '@/lib/stackedEdge';
 import { ChevronLeft, Activity, Zap, Shield, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 
+interface MarketData {
+    symbol: string;
+    price: number;
+    change: number;
+    changePercent: number;
+    stackedEdge: StackedEdgeResult;
+}
+
 export default function AssetDetail() {
     const params = useParams();
     const searchParams = useSearchParams();
@@ -18,7 +26,7 @@ export default function AssetDetail() {
     const name = searchParams.get('name') || symbol;
 
     const { country } = useMarket();
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<MarketData | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

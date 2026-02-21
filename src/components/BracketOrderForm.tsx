@@ -39,8 +39,6 @@ export default function BracketOrderForm({
         return () => setMounted(false);
     }, []);
 
-    if (!mounted) return null;
-
     // Update prices when current price changes
     useEffect(() => {
         if (orderType === 'market') {
@@ -49,6 +47,8 @@ export default function BracketOrderForm({
         setStopLoss(currentPrice * 0.95);
         setTakeProfit(currentPrice * 1.15);
     }, [currentPrice, orderType]);
+
+    if (!mounted) return null;
 
     // Calculate risk/reward ratio
     const entryPrice = orderType === 'market' ? currentPrice : limitPrice;
@@ -122,8 +122,8 @@ export default function BracketOrderForm({
             } else {
                 setError(data.error || 'Failed to submit bracket order');
             }
-        } catch (err: any) {
-            setError(err.message || 'Network error');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Network error');
         } finally {
             setSubmitting(false);
         }

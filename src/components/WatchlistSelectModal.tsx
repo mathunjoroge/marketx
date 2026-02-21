@@ -5,6 +5,12 @@ import { useWatchlist } from '@/hooks/useWatchlist';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
+interface Watchlist {
+    id: string;
+    name: string;
+    symbols: string[];
+}
+
 interface WatchlistSelectModalProps {
     symbol: string;
     isOpen: boolean;
@@ -16,7 +22,7 @@ export default function WatchlistSelectModal({
     isOpen,
     onClose
 }: WatchlistSelectModalProps) {
-    const { watchlists, addToWatchlist, removeFromWatchlist, createWatchlist, loading } = useWatchlist();
+    const { watchlists, addToWatchlist, removeFromWatchlist, createWatchlist } = useWatchlist();
     const [newListName, setNewListName] = useState('');
     const [isCreating, setIsCreating] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -29,7 +35,7 @@ export default function WatchlistSelectModal({
     if (!isOpen || !mounted) return null;
 
     const handleToggleList = async (watchlistId: string) => {
-        const watchlist = watchlists.find((w: any) => w.id === watchlistId);
+        const watchlist = watchlists.find((w: Watchlist) => w.id === watchlistId);
         if (!watchlist) return;
 
         try {
@@ -143,7 +149,7 @@ export default function WatchlistSelectModal({
                             No watchlists yet.
                         </div>
                     ) : (
-                        watchlists.map((watchlist: any) => {
+                        watchlists.map((watchlist: Watchlist) => {
                             const isInList = watchlist.symbols.includes(symbol);
 
                             return (

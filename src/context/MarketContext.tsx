@@ -17,7 +17,11 @@ export function MarketProvider({ children }: { children: React.ReactNode }) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        let isCancelled = false;
+        Promise.resolve().then(() => {
+            if (!isCancelled) setMounted(true);
+        });
+        return () => { isCancelled = true; };
     }, []);
 
     useEffect(() => {

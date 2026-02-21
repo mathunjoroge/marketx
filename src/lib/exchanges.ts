@@ -15,7 +15,6 @@ export function getPriorityExchanges(countryCode: string): string[] {
 
 export function formatSymbolForCountry(symbol: string, countryCode: string): string {
     // Logic to append exchange suffix if needed based on country priority
-    const priorities = getPriorityExchanges(countryCode);
     if (countryCode === 'GB' && !symbol.includes('.')) {
         return `${symbol}.L`;
     }

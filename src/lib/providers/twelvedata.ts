@@ -33,8 +33,9 @@ export class TwelveDataAdapter implements MarketDataProvider {
                 assetClass,
                 provider: this.name,
             };
-        } catch (error) {
-            logger.error(`Twelve Data error for ${symbol}:`, error);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger.error(`Twelve Data error for ${symbol}:`, { error: errorMessage });
             throw error;
         }
     }
@@ -48,7 +49,16 @@ export class TwelveDataAdapter implements MarketDataProvider {
             const d = response.data;
             if (d.status === 'error') throw new Error(d.message);
 
-            return d.values.map((v: any) => ({
+            interface TwelveDataValue {
+                datetime: string;
+                open: string;
+                high: string;
+                low: string;
+                close: string;
+                volume: string;
+            }
+
+            return (d.values as TwelveDataValue[]).map((v: TwelveDataValue) => ({
                 time: new Date(v.datetime).getTime(),
                 open: parseFloat(v.open),
                 high: parseFloat(v.high),
@@ -56,8 +66,9 @@ export class TwelveDataAdapter implements MarketDataProvider {
                 close: parseFloat(v.close),
                 volume: parseInt(v.volume) || 0,
             })).reverse(); // Twelve Data returns newest first
-        } catch (error) {
-            logger.error(`Twelve Data history error for ${symbol}:`, error);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger.error(`Twelve Data history error for ${symbol}:`, { error: errorMessage });
             throw error;
         }
     }

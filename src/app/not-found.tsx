@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, ArrowLeft, Search, TrendingUp } from 'lucide-react';
+import { Home, TrendingUp } from 'lucide-react';
 
 export default function NotFound() {
     return (

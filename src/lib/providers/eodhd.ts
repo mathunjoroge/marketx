@@ -34,8 +34,9 @@ export class EODHDAdapter implements MarketDataProvider {
                 assetClass,
                 provider: this.name,
             };
-        } catch (error) {
-            logger.error(`EODHD error for ${symbol}:`, error);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger.error(`EODHD error for ${symbol}:`, { error: errorMessage });
             throw error;
         }
     }
@@ -56,7 +57,16 @@ export class EODHDAdapter implements MarketDataProvider {
             const bars = response.data || [];
             if (!Array.isArray(bars)) return [];
 
-            return bars.slice(-limit).map((v: any) => ({
+            interface EODHDBar {
+                date: string;
+                open: number;
+                high: number;
+                low: number;
+                close: number;
+                volume?: number;
+            }
+
+            return (bars as EODHDBar[]).slice(-limit).map((v: EODHDBar) => ({
                 time: new Date(v.date).getTime(),
                 open: v.open,
                 high: v.high,
@@ -64,8 +74,9 @@ export class EODHDAdapter implements MarketDataProvider {
                 close: v.close,
                 volume: v.volume || 0,
             }));
-        } catch (error) {
-            logger.error(`EODHD history error for ${symbol}:`, error);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger.error(`EODHD history error for ${symbol}:`, { error: errorMessage });
             throw error;
         }
     }

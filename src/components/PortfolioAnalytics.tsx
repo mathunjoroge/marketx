@@ -1,27 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, BarChart3, DollarSign, Target, Shield } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { TrendingDown, BarChart3, DollarSign, Target, Shield } from 'lucide-react';
+import { PerformanceMetrics, Trade } from '@/lib/trading/analytics';
 
 interface AnalyticsProps {
     className?: string;
 }
 
 export default function PortfolioAnalytics({ className = '' }: AnalyticsProps) {
-    const [data, setData] = useState<any>(null);
+    interface AnalyticsResponse {
+        metrics?: PerformanceMetrics;
+        recentTrades?: Trade[];
+    }
+
+    const [data, setData] = useState<AnalyticsResponse | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchAnalytics();
-        const interval = setInterval(fetchAnalytics, 30000); // Refresh every 30 seconds
-        return () => clearInterval(interval);
-    }, []);
-
-    const fetchAnalytics = async () => {
+    const fetchAnalytics = useCallback(async () => {
         try {
             const res = await fetch('/api/trading/analytics');
-            const json = await res.json();
-            if (json.success) {
+            const json: AnalyticsResponse = await res.json(); // Cast to AnalyticsResponse
+            if (json) { // Assuming success is implied by data presence or handled by API
                 setData(json);
             }
         } catch (error) {
@@ -29,7 +29,13 @@ export default function PortfolioAnalytics({ className = '' }: AnalyticsProps) {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchAnalytics();
+        const interval = setInterval(fetchAnalytics, 30000); // Refresh every 30 seconds
+        return () => clearInterval(interval);
+    }, [fetchAnalytics]);
 
     if (loading) {
         return (
@@ -62,11 +68,11 @@ export default function PortfolioAnalytics({ className = '' }: AnalyticsProps) {
                         <span className="text-xs text-gray-400 uppercase tracking-wide">Total Return</span>
                         <DollarSign className="w-4 h-4 text-gray-600" />
                     </div>
-                    <div className={`text-2xl font-bold mb-1 ${metrics?.totalReturn >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {metrics?.totalReturn >= 0 ? '+' : ''}${metrics?.totalReturn?.toFixed(2) || '0.00'}
+                    <div className={`text-2xl font-bold mb-1 ${metrics?.totalReturn && metrics.totalReturn >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {metrics?.totalReturn && metrics.totalReturn >= 0 ? '+' : ''}${metrics?.totalReturn?.toFixed(2) || '0.00'}
                     </div>
-                    <div className={`text-sm ${metrics?.totalReturnPercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {metrics?.totalReturnPercent >= 0 ? '+' : ''}{metrics?.totalReturnPercent?.toFixed(2) || '0.00'}%
+                    <div className={`text-sm ${metrics?.totalReturnPercent && metrics.totalReturnPercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {metrics?.totalReturnPercent && metrics.totalReturnPercent >= 0 ? '+' : ''}{metrics?.totalReturnPercent?.toFixed(2) || '0.00'}%
                     </div>
                 </div>
 
@@ -139,7 +145,7 @@ export default function PortfolioAnalytics({ className = '' }: AnalyticsProps) {
                         </div>
                         <div className="flex justify-between items-center border-t border-gray-800 pt-3">
                             <span className="text-sm text-gray-400">Expectancy</span>
-                            <span className={`text-sm font-bold ${metrics?.expectancy >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            <span className={`text-sm font-bold ${metrics?.expectancy && metrics.expectancy >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                 ${metrics?.expectancy?.toFixed(2) || '0.00'}
                             </span>
                         </div>
@@ -160,8 +166,8 @@ export default function PortfolioAnalytics({ className = '' }: AnalyticsProps) {
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-400">Unrealized P&L</span>
-                            <span className={`text-sm font-bold ${metrics?.unrealizedPL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                {metrics?.unrealizedPL >= 0 ? '+' : ''}${metrics?.unrealizedPL?.toFixed(2) || '0.00'}
+                            <span className={`text-sm font-bold ${metrics?.unrealizedPL && metrics.unrealizedPL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {metrics?.unrealizedPL && metrics.unrealizedPL >= 0 ? '+' : ''}${metrics?.unrealizedPL?.toFixed(2) || '0.00'}
                             </span>
                         </div>
                     </div>
@@ -185,7 +191,7 @@ export default function PortfolioAnalytics({ className = '' }: AnalyticsProps) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-800">
-                                    {data.recentTrades.map((trade: any) => (
+                                    {data.recentTrades.map((trade) => (
                                         <tr key={trade.id} className="text-sm">
                                             <td className="px-4 py-3 font-bold text-white">{trade.symbol}</td>
                                             <td className="px-4 py-3">
@@ -195,14 +201,15 @@ export default function PortfolioAnalytics({ className = '' }: AnalyticsProps) {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-gray-300">{trade.qty ?? '—'}</td>
-                                            <td className="px-4 py-3 text-gray-300">
-                                                {trade.filled_avg_price != null
-                                                    ? `$${parseFloat(trade.filled_avg_price).toFixed(2)}`
-                                                    : '—'}
+                                            <td className={`px-4 py-3 font-medium ${trade.side === 'buy' || trade.side === 'LONG' ? 'text-green-400' : 'text-red-400'}`}>
+                                                {trade.side}
                                             </td>
-                                            <td className="px-4 py-3 text-gray-500 text-xs">
-                                                {trade.filled_at
-                                                    ? new Date(trade.filled_at).toLocaleDateString()
+                                            <td className="px-4 py-3 font-mono text-gray-300">
+                                                ${(trade.filled_avg_price || trade.entryPrice)?.toFixed(2) ?? '—'}
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-400 text-xs">
+                                                {(trade.filled_at || trade.entryTime)
+                                                    ? new Date(trade.filled_at || trade.entryTime).toLocaleDateString()
                                                     : '—'}
                                             </td>
                                         </tr>

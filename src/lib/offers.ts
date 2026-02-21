@@ -115,16 +115,6 @@ export function getFeaturedAssets(countryCode: string): FeaturedAsset[] {
         }
     };
 
-    // Helper to ensure we get exactly target count
-    const ensureCount = (categoryAssets: FeaturedAsset[], globalSource: FeaturedAsset[], target: number) => {
-        const currentCount = combined.filter(a => a.assetClass === categoryAssets[0]?.assetClass).length;
-        const needed = target - currentCount;
-
-        if (needed > 0) {
-            addFromList(globalSource, needed);
-        }
-    };
-
     // First ensure we have the regional ones added (already done via [...regional])
 
     // Now fill up to 6 for each category

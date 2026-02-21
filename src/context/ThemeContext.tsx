@@ -50,35 +50,48 @@ const darkVars: Record<string, string> = {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const { data: session } = useSession();
-    const [theme, setTheme] = useState<Theme>('dark');
+    const [theme, setTheme] = useState<Theme>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('theme') as Theme) || 'dark';
+        }
+        return 'dark';
+    });
 
-    useEffect(() => {
-        const saved = localStorage.getItem('theme') as Theme | null;
-        if (saved) setTheme(saved);
-    }, []);
 
-    useEffect(() => {
-        const vars = theme === 'light' ? lightVars : darkVars;
-        Object.entries(vars).forEach(([key, value]) => {
-            document.documentElement.style.setProperty(key, value);
-        });
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-    }, [theme]);
 
-    const toggleTheme = useCallback(() => {
-        const newTheme = theme === 'dark' ? 'light' : 'dark';
-        setTheme(newTheme);
-
-        // Persist to backend settings if logged in
+    // Function to update theme on backend
+    const updateThemeOnBackend = useCallback((newTheme: Theme) => {
         if (session?.user) {
             fetch('/api/user/settings', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ theme: newTheme }),
-            }).catch(() => { });
+            }).catch((err: unknown) => {
+                console.error('Failed to update theme on backend:', err);
+            });
         }
-    }, [theme, session?.user]);
+    }, [session?.user]);
+
+    useEffect(() => {
+        // Apply CSS variables
+        const vars = theme === 'light' ? lightVars : darkVars;
+        Object.entries(vars).forEach(([key, value]) => {
+            document.documentElement.style.setProperty(key, value);
+        });
+
+        // Apply theme to HTML element
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+
+        // Sync with backend if logged in
+        updateThemeOnBackend(theme);
+    }, [theme, updateThemeOnBackend]); // Added updateThemeOnBackend to dependencies
+
+    const toggleTheme = useCallback(() => {
+        const newTheme = theme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+        // The backend update is now handled by the useEffect that watches `theme`
+    }, [theme]);
 
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>

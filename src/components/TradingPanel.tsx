@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useAccount } from '@/hooks/useAccount';
-import { useOrders } from '@/hooks/useOrders';
+import { useOrders, OrderRequest } from '@/hooks/useOrders';
 
 interface TradingPanelProps {
     symbol: string;
@@ -26,7 +26,7 @@ export default function TradingPanel({ symbol, currentPrice = 0 }: TradingPanelP
         e.preventDefault();
         setMessage(null);
 
-        const orderData: any = {
+        const orderData: OrderRequest = {
             symbol,
             qty: parseInt(qty),
             side,
@@ -38,16 +38,21 @@ export default function TradingPanel({ symbol, currentPrice = 0 }: TradingPanelP
             orderData.limit_price = parseFloat(limitPrice);
         }
 
-        const result = await submitOrder(orderData);
+        try {
+            const result = await submitOrder(orderData);
 
-        if (result.success) {
-            setMessage({ type: 'success', text: result.message || 'Order submitted successfully!' });
-            setQty('1');
-            setLimitPrice('');
-            // Refresh account/position data
+            if (result.success) {
+                setMessage({ type: 'success', text: result.message || 'Order submitted successfully!' });
+                setQty('1');
+                setLimitPrice('');
+            } else {
+                setMessage({ type: 'error', text: result.error || 'Failed to submit order' });
+            }
+        } catch (err: unknown) {
+            setMessage({ type: 'error', text: err instanceof Error ? err.message : 'An unexpected error occurred.' });
+        } finally {
+            // Refresh account/position data regardless of success or failure
             refetch();
-        } else {
-            setMessage({ type: 'error', text: result.error || 'Failed to submit order' });
         }
     };
 

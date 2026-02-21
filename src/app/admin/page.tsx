@@ -3,9 +3,9 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect, useCallback } from 'react';
 import {
-    Users, BarChart3, Star, TrendingUp, Shield, ShieldCheck, ShieldAlert,
-    HeadphonesIcon, Loader2, ChevronDown, Crown, Eye, FileText,
-    Megaphone, PlusCircle, Trash2, Ban, UserCheck, Power, Clock, AlertTriangle
+    Users, BarChart3, Star, TrendingUp, Shield, ShieldCheck,
+    HeadphonesIcon, Loader2, ChevronDown, Crown, FileText,
+    Megaphone, PlusCircle, Trash2, Ban, UserCheck, Power, Clock
 } from 'lucide-react';
 
 const ADMIN_ROLES = ['SUPER_ADMIN', 'MARKET_ADMIN', 'COMPLIANCE_OFFICER', 'SUPPORT_AGENT', 'USER'] as const;

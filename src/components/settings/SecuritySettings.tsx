@@ -2,10 +2,14 @@
 
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Shield, Smartphone, Key, AlertTriangle, CheckCircle2, Loader2, Copy } from 'lucide-react';
+import { Shield, Smartphone, AlertTriangle, CheckCircle2, Loader2, Copy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-export default function SecuritySettings({ user }: { user: any }) {
+interface User {
+    twoFactorEnabled: boolean;
+}
+
+export default function SecuritySettings({ user }: { user: User }) {
     const router = useRouter();
     const [isEnabled, setIsEnabled] = useState(user.twoFactorEnabled);
     const [step, setStep] = useState<'initial' | 'setup' | 'verify'>('initial');
@@ -27,8 +31,9 @@ export default function SecuritySettings({ user }: { user: any }) {
             setSecret(data.secret);
             setOtpauthUrl(data.otpauthUrl);
             setStep('setup');
-        } catch (err: any) {
-            setError(err.message || 'Failed to start setup');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to start setup';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -53,8 +58,9 @@ export default function SecuritySettings({ user }: { user: any }) {
 
             // Clear success message after 3 seconds
             setTimeout(() => setSuccessMessage(''), 3000);
-        } catch (err: any) {
-            setError(err.message || 'Verification failed');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Verification failed';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -72,8 +78,9 @@ export default function SecuritySettings({ user }: { user: any }) {
             setSuccessMessage('Two-factor authentication disabled.');
             router.refresh();
             setTimeout(() => setSuccessMessage(''), 3000);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

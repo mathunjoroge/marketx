@@ -31,8 +31,9 @@ export async function GET() {
         }));
 
         return NextResponse.json(enriched);
-    } catch (error: any) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message }, { status: 500 });
     }
 }
 
@@ -60,7 +61,8 @@ export async function POST(req: Request) {
             }
         });
         return NextResponse.json(goal, { status: 201 });
-    } catch (error: any) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message }, { status: 500 });
     }
 }

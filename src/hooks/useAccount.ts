@@ -90,8 +90,9 @@ export function useAccount({ pollInterval = 0, symbol, fetchPositions = false }:
                     if (fetchPositions) setPositions([]);
                 }
             }
-        } catch (err: any) {
-            setError(err.message || 'Error fetching account data');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Error fetching account data';
+            setError(errorMessage);
             console.error(err);
         } finally {
             setLoading(false);

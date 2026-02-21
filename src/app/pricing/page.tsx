@@ -130,8 +130,9 @@ export default function PricingPage() {
                 if (data.url) window.location.href = data.url;
                 else throw new Error(data.message || 'Checkout failed');
             }
-        } catch (err: any) {
-            error(err.message || 'Something went wrong');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Something went wrong';
+            error(errorMessage);
             setLoading(false);
         }
     };

@@ -62,8 +62,10 @@ export function useChat() {
             };
 
             setMessages(prev => [...prev, aiMsg]);
-        } catch (err: any) {
-            setError(err.message || 'Something went wrong');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Error sending message';
+            setError(message);
+            console.error(err);
         } finally {
             setLoading(false);
         }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Megaphone, X, AlertTriangle, Info } from 'lucide-react';
+import { X, AlertTriangle, Info } from 'lucide-react';
 
 interface Announcement {
     id: string;
@@ -11,7 +11,7 @@ interface Announcement {
     createdAt: string;
 }
 
-const TYPE_STYLES: Record<string, { bg: string; border: string; color: string; icon: any }> = {
+const TYPE_STYLES: Record<string, { bg: string; border: string; color: string; icon: React.ElementType }> = {
     info: { bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.2)', color: '#60a5fa', icon: Info },
     warning: { bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)', color: '#fbbf24', icon: AlertTriangle },
     urgent: { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)', color: '#f87171', icon: AlertTriangle },
@@ -19,17 +19,21 @@ const TYPE_STYLES: Record<string, { bg: string; border: string; color: string; i
 
 export default function AnnouncementBanner() {
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-    const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+    const [dismissed, setDismissed] = useState<Set<string>>(() => {
+        if (typeof window === 'undefined') return new Set();
+        try {
+            const saved = localStorage.getItem('dismissed-announcements');
+            return saved ? new Set(JSON.parse(saved)) : new Set();
+        } catch {
+            return new Set();
+        }
+    });
 
     useEffect(() => {
         fetch('/api/announcements')
             .then(r => r.json())
             .then(data => setAnnouncements(Array.isArray(data) ? data : []))
             .catch(() => { });
-
-        // Load dismissed announcements from localStorage
-        const saved = localStorage.getItem('dismissed-announcements');
-        if (saved) setDismissed(new Set(JSON.parse(saved)));
     }, []);
 
     const dismiss = (id: string) => {

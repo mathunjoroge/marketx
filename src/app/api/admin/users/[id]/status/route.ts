@@ -72,7 +72,7 @@ export async function PATCH(
         });
 
         return NextResponse.json(updated);
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('User status update error:', err);
         return NextResponse.json({ message: 'Failed to update user status' }, { status: 500 });
     }

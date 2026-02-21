@@ -9,7 +9,7 @@ const createBudgetSchema = z.object({
     period: z.enum(['MONTHLY', 'WEEKLY', 'YEARLY']).default('MONTHLY'),
 });
 
-export async function GET(req: Request) {
+export async function GET() {
     const session = await auth();
     if (!session || !session.user) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -45,8 +45,9 @@ export async function GET(req: Request) {
         }));
 
         return NextResponse.json(enrichedBudgets);
-    } catch (error: any) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message }, { status: 500 });
     }
 }
 
@@ -76,7 +77,8 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(budget, { status: 201 });
-    } catch (error: any) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message }, { status: 500 });
     }
 }

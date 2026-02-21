@@ -70,12 +70,12 @@ export async function POST(req: NextRequest) {
             message: 'Trailing stop order submitted successfully'
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Trailing stop error:', error);
         return NextResponse.json(
             {
                 error: 'Failed to submit trailing stop order',
-                details: error.message
+                details: error instanceof Error ? error.message : 'Unknown error'
             },
             { status: 500 }
         );

@@ -132,7 +132,7 @@ export default function WatchlistPage() {
             );
 
             setAssets({ data: newAssets, loading: false, error: null });
-        } catch (error) {
+        } catch {
             setAssets(prev => ({
                 ...prev,
                 loading: false,
@@ -358,7 +358,7 @@ export default function WatchlistPage() {
                             <p className="text-gray-400 mb-6">
                                 Are you sure you want to delete{' '}
                                 <span className="font-semibold text-white">
-                                    "{watchlists.find(w => w.id === deletingId)?.name}"
+                                    &quot;{watchlists.find(w => w.id === deletingId)?.name}&quot;
                                 </span>
                                 ? This action cannot be undone.
                             </p>
@@ -399,7 +399,7 @@ export default function WatchlistPage() {
                                         Market page
                                     </Link>{' '}
                                     to discover and add assets to{' '}
-                                    <span className="text-indigo-400 font-medium">"{activeWatchlist.name}"</span>.
+                                    <span className="text-indigo-400 font-medium">&quot;{activeWatchlist.name}&quot;</span>.
                                 </>
                             }
                             action={

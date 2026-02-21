@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import MetricsGrid from './MetricsGrid';
 import EquityCurveChart from './EquityCurveChart';
 import TradeJournalTable from './TradeJournalTable';
@@ -19,16 +19,7 @@ export default function AnalyticsDashboard() {
 
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        fetchPerformanceData();
-        fetchJournalData();
-    }, [timeframe]);
-
-    useEffect(() => {
-        fetchJournalData();
-    }, [page]);
-
-    const fetchPerformanceData = async () => {
+    const fetchPerformanceData = useCallback(async () => {
         try {
             const res = await fetch(`/api/analytics/performance?timeframe=${timeframe}`);
             if (res.ok) {
@@ -40,9 +31,9 @@ export default function AnalyticsDashboard() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [timeframe]);
 
-    const fetchJournalData = async () => {
+    const fetchJournalData = useCallback(async () => {
         setJournalLoading(true);
         try {
             const res = await fetch(`/api/analytics/journal?page=${page}&limit=10&timeframe=${timeframe}`);
@@ -56,7 +47,16 @@ export default function AnalyticsDashboard() {
         } finally {
             setJournalLoading(false);
         }
-    };
+    }, [page, timeframe]);
+
+    useEffect(() => {
+        fetchPerformanceData();
+        fetchJournalData();
+    }, [fetchPerformanceData, fetchJournalData]);
+
+    useEffect(() => {
+        fetchJournalData();
+    }, [fetchJournalData]);
 
     return (
         <div className="space-y-6">

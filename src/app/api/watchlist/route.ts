@@ -4,7 +4,7 @@ import { auth } from '@/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request) {
+export async function GET() {
     try {
         const session = await auth();
         if (!session?.user?.email) {
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
         });
 
         return NextResponse.json(watchlists);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error fetching watchlists:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(watchlist);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error creating watchlist:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }

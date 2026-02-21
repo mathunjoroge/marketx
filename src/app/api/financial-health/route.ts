@@ -131,7 +131,8 @@ export async function GET() {
                 date: h.calculatedAt,
             })),
         });
-    } catch (error: any) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message }, { status: 500 });
     }
 }

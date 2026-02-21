@@ -78,7 +78,7 @@ export async function PATCH(request: NextRequest) {
         });
 
         return NextResponse.json(updated);
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Admin user update error:', err);
         return NextResponse.json({ message: 'Failed to update user' }, { status: 500 });
     }

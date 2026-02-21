@@ -47,9 +47,10 @@ export function useAdvisor() {
             if (!res.ok) throw new Error('Failed to get advice');
             const data = await res.json();
             setAdvice(data);
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Error getting advice';
             console.error(err);
-            setError(err.message || 'Failed to get AI advice');
+            setError(message);
         } finally {
             setLoading(false);
         }

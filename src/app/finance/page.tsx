@@ -255,11 +255,11 @@ export default function FinanceDashboard() {
                                 <div className={styles.field}>
                                     <label>Account Name</label>
                                     <input type="text" placeholder="e.g. Chase Checkings" value={accountForm.name}
-                                        onChange={e => setAccountForm((f: any) => ({ ...f, name: e.target.value }))} required autoFocus />
+                                        onChange={e => setAccountForm(f => ({ ...f, name: e.target.value }))} required autoFocus />
                                 </div>
                                 <div className={styles.field}>
                                     <label>Account Type</label>
-                                    <select value={accountForm.type} onChange={e => setAccountForm((f: any) => ({ ...f, type: e.target.value }))}>
+                                    <select value={accountForm.type} onChange={e => setAccountForm(f => ({ ...f, type: e.target.value }))}>
                                         <option value="CHECKING">Checking</option>
                                         <option value="SAVINGS">Savings</option>
                                         <option value="CREDIT">Credit Card</option>
@@ -270,12 +270,12 @@ export default function FinanceDashboard() {
                                 <div className={styles.field}>
                                     <label>Initial Balance ($)</label>
                                     <input type="number" step="0.01" value={accountForm.balance}
-                                        onChange={e => setAccountForm((f: any) => ({ ...f, balance: e.target.value }))} placeholder="0.00" />
+                                        onChange={e => setAccountForm(f => ({ ...f, balance: e.target.value }))} placeholder="0.00" />
                                 </div>
                                 <div className={styles.field}>
                                     <label>Institution (Optional)</label>
                                     <input type="text" placeholder="e.g. Chase Bank" value={accountForm.institution}
-                                        onChange={e => setAccountForm((f: any) => ({ ...f, institution: e.target.value }))} />
+                                        onChange={e => setAccountForm(f => ({ ...f, institution: e.target.value }))} />
                                 </div>
                                 <div className={styles.formActions}>
                                     <button type="button" className={styles.cancelBtn} onClick={() => setShowAccountModal(false)}>Cancel</button>

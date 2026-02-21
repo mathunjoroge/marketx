@@ -1,11 +1,11 @@
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db/prisma';
 import { calculatePerformanceMetrics, Trade } from '@/lib/trading/analytics';
 import { alpacaBroker } from '@/lib/brokers/alpaca';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
         const session = await auth();
 
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
                 const totalPnL = analyticsTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
                 initialEquity = currentEquity - totalPnL;
             }
-        } catch (error) {
+        } catch {
             // console.warn('Failed to fetch Alpaca account for analytics', error);
             // Fallback: Start with 100k and add PnL
             const totalPnL = analyticsTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);

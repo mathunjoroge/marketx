@@ -45,9 +45,10 @@ export function useFinancialHealth() {
             const res = await fetch('/api/financial-health');
             if (!res.ok) throw new Error('Failed to fetch health score');
             setHealth(await res.json());
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Error checking health';
+            setError(message);
             console.error(err);
-            setError(err.message || 'Failed to load health score');
         } finally {
             setLoading(false);
         }

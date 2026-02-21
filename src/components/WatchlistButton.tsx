@@ -2,7 +2,7 @@
 
 import { Star } from 'lucide-react';
 import { useWatchlist } from '@/hooks/useWatchlist';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import WatchlistSelectModal from './WatchlistSelectModal';
 
 interface WatchlistButtonProps {
@@ -12,22 +12,12 @@ interface WatchlistButtonProps {
 
 export default function WatchlistButton({ symbol, className = '' }: WatchlistButtonProps) {
     const { watchlists, loading } = useWatchlist();
-    const [isWatched, setIsWatched] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [watchlistCount, setWatchlistCount] = useState(0);
 
-    // Effect to update local state when watchlists change
-    useEffect(() => {
-        if (watchlists.length > 0) {
-            // Check if in ANY watchlist
-            const listsContainingSymbol = watchlists.filter(w => w.symbols.includes(symbol));
-            setIsWatched(listsContainingSymbol.length > 0);
-            setWatchlistCount(listsContainingSymbol.length);
-        } else {
-            setIsWatched(false);
-            setWatchlistCount(0);
-        }
-    }, [watchlists, symbol]);
+    // Calculate state during render to avoid useEffect
+    const listsContainingSymbol = watchlists.filter(w => w.symbols.includes(symbol));
+    const isWatched = listsContainingSymbol.length > 0;
+    const watchlistCount = listsContainingSymbol.length;
 
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();

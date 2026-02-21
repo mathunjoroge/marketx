@@ -13,9 +13,9 @@ interface AssetPrice {
 }
 
 export default function DashboardWatchlist() {
-    const { activeWatchlist, watchlists, setActiveWatchlist } = useWatchlist();
+    const { activeWatchlist } = useWatchlist();
     const [prices, setPrices] = useState<Record<string, AssetPrice>>({});
-    const [loading, setLoading] = useState(false);
+    // const [loading, setLoading] = useState(false);
 
     const fetchPrices = useCallback(async () => {
         if (!activeWatchlist?.symbols.length) return;
@@ -36,26 +36,43 @@ export default function DashboardWatchlist() {
                             assetClass: data.assetClass || 'stock'
                         }
                     };
-                } catch (e) {
+                } catch {
                     return null;
                 }
             });
 
+            interface PriceResult {
+                symbol: string;
+                data: AssetPrice;
+            }
+
             const results = await Promise.all(promises);
             const newPrices: Record<string, AssetPrice> = {};
-            results.forEach((r: { symbol: string, data: AssetPrice } | null) => {
+            results.forEach((r: PriceResult | null) => {
                 if (r) newPrices[r.symbol] = r.data;
             });
             setPrices(newPrices);
-        } catch (e) {
-            console.error(e);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            console.error(errorMessage);
         }
     }, [activeWatchlist]);
 
     useEffect(() => {
-        fetchPrices();
+        let isStopped = false;
+
+        const initFetch = async () => {
+            if (!isStopped) {
+                await fetchPrices();
+            }
+        };
+
+        initFetch();
         const interval = setInterval(fetchPrices, 30000);
-        return () => clearInterval(interval);
+        return () => {
+            isStopped = true;
+            clearInterval(interval);
+        };
     }, [fetchPrices]);
 
     if (!activeWatchlist || activeWatchlist.symbols.length === 0) {

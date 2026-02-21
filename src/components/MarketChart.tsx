@@ -8,10 +8,10 @@ import {
     PointElement,
     LineElement,
     BarElement,
-    Title,
     Tooltip,
     Legend,
     Filler,
+    ChartOptions
 } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
 import { HistoricalBar } from '@/lib/providers/types';
@@ -24,7 +24,6 @@ ChartJS.register(
     PointElement,
     LineElement,
     BarElement,
-    Title,
     Tooltip,
     Legend,
     Filler
@@ -53,8 +52,19 @@ export default function MarketChart({ symbol, assetClass, initialInterval = '240
     const [loading, setLoading] = useState(true);
     const [interval, setIntervalState] = useState(initialInterval);
 
-    useEffect(() => {
+    // Sync loading state and prev values during render to avoid cascading effect renders
+    const [prevSymbol, setPrevSymbol] = useState(symbol);
+    const [prevInterval, setPrevInterval] = useState(interval);
+    const [prevCountry, setPrevCountry] = useState(country);
+
+    if (symbol !== prevSymbol || interval !== prevInterval || country !== prevCountry) {
+        setPrevSymbol(symbol);
+        setPrevInterval(interval);
+        setPrevCountry(country);
         setLoading(true);
+    }
+
+    useEffect(() => {
         fetch(`/api/market-data?symbol=${symbol}&assetClass=${assetClass}&history=true&country=${country}&limit=250&interval=${interval}`)
             .then(res => {
                 if (!res.ok) throw new Error('Data not available');
@@ -92,7 +102,7 @@ export default function MarketChart({ symbol, assetClass, initialInterval = '240
     const rsiSlice = rsiValues.slice(-visiblePoints);
     const macdHistSlice = macdData.histogram.slice(-visiblePoints);
 
-    const sharedOptions: any = {
+    const sharedOptions: ChartOptions<'line' | 'bar'> = {
         responsive: true,
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
@@ -161,7 +171,7 @@ export default function MarketChart({ symbol, assetClass, initialInterval = '240
                             ] : [])
                         ]
                     }}
-                    options={{ ...sharedOptions, scales: { ...sharedOptions.scales, x: { ...sharedOptions.scales.x, display: !showSelector } } }}
+                    options={({ ...sharedOptions, scales: { ...sharedOptions.scales, x: { ...sharedOptions.scales?.x, display: !showSelector } } } as ChartOptions<'line'>)}
                 />
             </div>
 
@@ -182,14 +192,14 @@ export default function MarketChart({ symbol, assetClass, initialInterval = '240
                                     tension: 0.1,
                                 }]
                             }}
-                            options={{
+                            options={({
                                 ...sharedOptions,
                                 scales: {
                                     ...sharedOptions.scales,
-                                    x: { ...sharedOptions.scales.x, display: false },
-                                    y: { ...sharedOptions.scales.y, min: 0, max: 100 }
+                                    x: { ...sharedOptions.scales?.x, display: false },
+                                    y: { ...sharedOptions.scales?.y, min: 0, max: 100 }
                                 }
-                            }}
+                            } as ChartOptions<'line'>)}
                         />
                     </div>
 
@@ -210,9 +220,14 @@ export default function MarketChart({ symbol, assetClass, initialInterval = '240
                                     barPercentage: 0.9,
                                 }]
                             }}
-                            options={{
+                            options={({
                                 ...sharedOptions,
-                            }}
+                                scales: {
+                                    ...sharedOptions.scales,
+                                    x: { ...sharedOptions.scales?.x, display: true },
+                                    y: { ...sharedOptions.scales?.y, grace: '20%' }
+                                }
+                            } as ChartOptions<'bar'>)}
                         />
                     </div>
                 </>

@@ -1,7 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Calculator, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+
+interface RiskResult {
+    success: boolean;
+    recommended: {
+        shares: number;
+        positionValue: number;
+        positionSizePercent: number;
+        riskAmount: number;
+        errors?: string[];
+    };
+    riskReward?: {
+        ratio: number;
+        riskPercent: number;
+        rewardAmount: number;
+        rewardPercent: number;
+    };
+}
 
 interface RiskCalculatorProps {
     currentPrice?: number;
@@ -20,7 +37,7 @@ export default function RiskCalculator({
     const [entryPrice, setEntryPrice] = useState(currentPrice);
     const [stopPrice, setStopPrice] = useState(0);
     const [targetPrice, setTargetPrice] = useState(0);
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<RiskResult | null>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -33,7 +50,7 @@ export default function RiskCalculator({
         }
     }, [currentPrice]);
 
-    const calculate = async () => {
+    const calculate = useCallback(async () => {
         if (!entryPrice || !stopPrice) {
             return;
         }
@@ -62,11 +79,11 @@ export default function RiskCalculator({
         } finally {
             setLoading(false);
         }
-    };
+    }, [entryPrice, stopPrice, accountValue, buyingPower, targetPrice, riskPercent]);
 
     useEffect(() => {
         calculate();
-    }, [riskPercent, entryPrice, stopPrice, targetPrice]);
+    }, [calculate]);
 
     const handleApply = () => {
         if (result?.recommended?.shares && onApplyToOrder) {
@@ -136,6 +153,7 @@ export default function RiskCalculator({
                 }}>
                     <Calculator size={20} color="#818cf8" />
                     Risk Calculator
+                    {loading && <div className="ml-auto w-4 h-4 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />}
                 </h3>
 
                 {/* Risk Percent Slider */}

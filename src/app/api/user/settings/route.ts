@@ -9,7 +9,7 @@ const settingsSchema = z.object({
     currency: z.string().optional(),
 });
 
-export async function GET(req: Request) {
+export async function GET() {
     const session = await auth();
 
     if (!session || !session.user) {

@@ -42,9 +42,11 @@ export default function MobileNav() {
   ];
 
   // Close on route change
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setIsOpen(false);
-  }, [pathname]);
+  }
 
   // Close on outside click
   useEffect(() => {

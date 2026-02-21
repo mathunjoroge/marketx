@@ -27,7 +27,7 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
         }
 
         return NextResponse.json(watchlist);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error fetching watchlist:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
@@ -60,7 +60,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
         });
 
         return NextResponse.json(updated);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error updating watchlist:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
@@ -86,7 +86,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
         });
 
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error deleting watchlist:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }

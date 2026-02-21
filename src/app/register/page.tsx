@@ -63,8 +63,9 @@ export default function RegisterPage() {
                 router.push('/portfolio');
                 router.refresh();
             }
-        } catch (err: any) {
-            setError(err.message || 'An error occurred. Please try again.');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'An error occurred. Please try again.';
+            setError(errorMessage);
             setLoading(false);
         }
     };
@@ -646,14 +647,14 @@ export default function RegisterPage() {
                                         Sign in
                                     </Link>
                                 </p>
-                                                        <p style={{
-                            textAlign: 'center',
-                            fontSize: '1rem',
-                            color: 'white',
-                            marginTop: '1.5rem'
-                        }}>
-                            By creating an account, you agree to our Terms of Service and Privacy Policy.
-                        </p>
+                                <p style={{
+                                    textAlign: 'center',
+                                    fontSize: '1rem',
+                                    color: 'white',
+                                    marginTop: '1.5rem'
+                                }}>
+                                    By creating an account, you agree to our Terms of Service and Privacy Policy.
+                                </p>
                             </div>
                         </div>
 

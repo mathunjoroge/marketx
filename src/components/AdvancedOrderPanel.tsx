@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { TrendingUp, TrendingDown, Settings } from 'lucide-react';
 import RiskCalculator from './RiskCalculator';
 import { useAccount } from '@/hooks/useAccount';
 import { useOrders } from '@/hooks/useOrders';
+import type { OrderRequest } from '@/lib/brokers/types';
 
 interface AdvancedOrderPanelProps {
     symbol: string;
@@ -15,7 +16,6 @@ interface AdvancedOrderPanelProps {
 export default function AdvancedOrderPanel({
     symbol,
     currentPrice = 0,
-    assetClass = 'stock', // Future use, currently defaults to 'stock' logic
 }: AdvancedOrderPanelProps) {
     // Form State
     const [activeTab, setActiveTab] = useState<'simple' | 'advanced'>('simple');
@@ -36,29 +36,30 @@ export default function AdvancedOrderPanel({
     const { account, position, refetch: refetchAccount } = useAccount({ pollInterval: 5000, symbol });
     const { submitOrder, submitting, error: submitError } = useOrders();
 
-    // Default prices when currentPrice updates
-    useEffect(() => {
-        if (currentPrice > 0) {
-            setLimitPrice(currentPrice);
-            // Default stop at 5% below, target at 15% above
-            setStopLossPrice(parseFloat((currentPrice * 0.95).toFixed(2)));
-            setTakeProfitPrice(parseFloat((currentPrice * 1.15).toFixed(2)));
-        }
-    }, [currentPrice]);
+    // Default prices when currentPrice updates (only set once when price first becomes available)
+    const [hasSetDefaults, setHasSetDefaults] = useState(false);
+    if (currentPrice > 0 && !hasSetDefaults) {
+        setLimitPrice(currentPrice);
+        setStopLossPrice(parseFloat((currentPrice * 0.95).toFixed(2)));
+        setTakeProfitPrice(parseFloat((currentPrice * 1.15).toFixed(2)));
+        setHasSetDefaults(true);
+    }
 
-    // Handle initial load or symbol change
-    useEffect(() => {
-        // Reset form when symbol changes
+    // Reset some state when symbol changes
+    const [prevSymbol, setPrevSymbol] = useState(symbol);
+    if (symbol !== prevSymbol) {
+        setPrevSymbol(symbol);
         setMessage('');
         setQuantity(1);
         setUseBracketOrder(false);
-    }, [symbol]);
+        setHasSetDefaults(false); // Allow re-setting defaults for the new symbol
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setMessage('');
 
-        const orderRequest: any = {
+        const orderRequest: OrderRequest = {
             symbol,
             qty: quantity,
             side,

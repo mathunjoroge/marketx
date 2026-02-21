@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserServices } from '@/lib/auth/credentials';
-import { requireAuth, apiError } from '@/lib/api-helpers';
+import { requireAuth } from '@/lib/api-helpers';
 
 type RouteProps = {
     params: Promise<{
@@ -25,12 +25,13 @@ export async function GET(request: NextRequest, { params }: RouteProps) {
             success: true,
             order,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching order:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch order';
         return NextResponse.json(
             {
                 success: false,
-                error: error.message || 'Failed to fetch order',
+                error: errorMessage,
             },
             { status: 500 }
         );
@@ -54,12 +55,13 @@ export async function DELETE(request: NextRequest, { params }: RouteProps) {
             success: true,
             message: 'Order cancelled successfully',
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error cancelling order:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to cancel order';
         return NextResponse.json(
             {
                 success: false,
-                error: error.message || 'Failed to cancel order',
+                error: errorMessage,
             },
             { status: 500 }
         );

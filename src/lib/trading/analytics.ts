@@ -7,12 +7,14 @@
 export interface Trade {
     id: string;
     symbol: string;
-    side: 'LONG' | 'SHORT';
+    side: 'LONG' | 'SHORT' | 'buy' | 'sell';
     qty: number;
     entryPrice: number;
     exitPrice?: number;
+    filled_avg_price?: number; // Support for different field names
     entryTime: Date | string;
     exitTime?: Date | string;
+    filled_at?: string; // Support for different field names
     pnl?: number; // P&L for closed trades
     exitReason?: string;
 }
@@ -32,6 +34,9 @@ export interface PerformanceMetrics {
     totalTrades: number;
     winningTrades: number;
     losingTrades: number;
+    initialEquity?: number;
+    currentEquity?: number;
+    unrealizedPL?: number;
 }
 
 export interface EquityPoint {

@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/db/prisma';
 import { getUserServicesById } from '@/lib/auth/credentials';
 import logger from '@/lib/logger';
-import { ExitReason } from '@prisma/client';
+import { ExitReason, Trade as PrismaTrade } from '@prisma/client';
+import { Order } from '@/lib/brokers/types';
 
 export class OrderMonitorService {
     private static instance: OrderMonitorService;
@@ -76,7 +77,7 @@ export class OrderMonitorService {
         }
     }
 
-    private async processFilledOrder(userId: string, order: any) {
+    private async processFilledOrder(userId: string, order: Order) {
         // Check if this order is already recorded as a trade entry or exit
         const existingEntry = await prisma.trade.findFirst({
             where: { entryOrderId: order.id }
@@ -119,8 +120,8 @@ export class OrderMonitorService {
         await this.createTrade(userId, order);
     }
 
-    private async createTrade(userId: string, order: any) {
-        const entryPrice = parseFloat(order.filled_avg_price || order.limit_price || 0);
+    private async createTrade(userId: string, order: Order) {
+        const entryPrice = parseFloat(order.filled_avg_price || order.limit_price || '0');
         const qty = parseFloat(order.filled_qty);
 
         await prisma.trade.create({
@@ -138,7 +139,7 @@ export class OrderMonitorService {
         logger.info(`[OrderMonitor] Recorded ENTRY: ${order.symbol} (${order.side}) @ ${entryPrice}`);
     }
 
-    private async closeTrade(trade: any, order: any) {
+    private async closeTrade(trade: PrismaTrade, order: Order) {
         // Determine Exit Reason from Order Type
         let exitReason: ExitReason = ExitReason.MANUAL;
 
@@ -148,7 +149,7 @@ export class OrderMonitorService {
             exitReason = ExitReason.STOP_LOSS;
         } else if (order.type === 'limit') {
             // Heuristic: if limit exit price is better than entry, it's a take-profit
-            const exitPrice = parseFloat(order.filled_avg_price || 0);
+            const exitPrice = parseFloat(order.filled_avg_price || '0');
             if (trade.side === 'LONG' && exitPrice > trade.entryPrice) {
                 exitReason = ExitReason.TAKE_PROFIT;
             } else if (trade.side === 'SHORT' && exitPrice < trade.entryPrice) {
@@ -158,7 +159,7 @@ export class OrderMonitorService {
             }
         }
 
-        const exitPrice = parseFloat(order.filled_avg_price || 0);
+        const exitPrice = parseFloat(order.filled_avg_price || '0');
         const exitTime = new Date(order.filled_at || new Date().toISOString());
 
         // Calculate P&L

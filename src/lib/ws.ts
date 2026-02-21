@@ -1,4 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
+import http from 'http';
+import net from 'net';
 import { marketData } from './providers/aggregator';
 import { sub } from './redis';
 import logger from './logger';
@@ -29,11 +31,12 @@ function decrementRef(channel: string) {
     }
 }
 
-export function setupMarketWS(server: any) {
+export function setupMarketWS(server: http.Server) {
     const wss = new WebSocketServer({ noServer: true });
 
-    server.on('upgrade', (request: any, socket: any, head: any) => {
-        const { pathname } = new URL(request.url, `http://${request.headers.host}`);
+    server.on('upgrade', (request: http.IncomingMessage, socket: net.Socket, head: Buffer) => {
+        const url = new URL(request.url || '', `http://${request.headers.host || 'localhost'}`);
+        const { pathname } = url;
 
         if (pathname === '/ws/market') {
             wss.handleUpgrade(request, socket, head, (ws) => {
@@ -88,8 +91,9 @@ export function setupMarketWS(server: any) {
                         decrementRef(channel);
                     }
                 }
-            } catch (err) {
-                logger.error('WS Message Error:', err);
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+                logger.error('WS Message Error:', errorMessage);
             }
         });
 
@@ -103,8 +107,8 @@ export function setupMarketWS(server: any) {
             logger.info('Market WS connection closed');
         });
 
-        ws.on('error', (err) => {
-            logger.error('WS connection error:', err);
+        ws.on('error', (err: Error) => {
+            logger.error('WS connection error:', err.message);
         });
     });
 

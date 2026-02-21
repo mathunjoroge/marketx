@@ -46,7 +46,6 @@ export async function POST(req: NextRequest) {
 
         // Validate price logic for long positions
         if (side === 'buy') {
-            const entryPrice = limit_price || 0; // If market order, we'll validate after
             if (type === 'limit' && limit_price) {
                 if (stop_loss.stop_price >= limit_price) {
                     return NextResponse.json(
@@ -107,12 +106,12 @@ export async function POST(req: NextRequest) {
             message: 'Bracket order submitted successfully'
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Bracket order error:', error);
         return NextResponse.json(
             {
                 error: 'Failed to submit bracket order',
-                details: error.message
+                details: error instanceof Error ? error.message : 'Unknown error'
             },
             { status: 500 }
         );

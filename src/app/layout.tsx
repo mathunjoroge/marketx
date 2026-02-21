@@ -6,6 +6,13 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { ThemeProvider } from '@/context/ThemeContext';
 import Header from '@/components/Header';
 import ClientShell from '@/components/ClientShell';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -35,14 +42,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
       <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
       </head>
-      <body suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen bg-[#0d1117] text-gray-100 flex flex-col`} suppressHydrationWarning>
         <AuthProvider>
           <ToastProvider>
             <ThemeProvider>

@@ -23,8 +23,9 @@ export async function POST(req: Request) {
             event = JSON.parse(body) as Stripe.Event;
             logger.warn('Stripe webhook received without signature verification (dev mode)');
         }
-    } catch (err: any) {
-        logger.error(`Webhook signature verification failed: ${err.message}`);
+    } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        logger.error(`Webhook signature verification failed: ${errorMessage}`);
         return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 

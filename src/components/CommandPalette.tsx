@@ -77,11 +77,26 @@ export default function CommandPalette() {
     // Focus input when opened
     useEffect(() => {
         if (isOpen) {
-            setQuery('');
-            setSelectedIndex(0);
             setTimeout(() => inputRef.current?.focus(), 50);
         }
     }, [isOpen]);
+
+    // Resets when opening/closing or query changes
+    const [prevOpen, setPrevOpen] = useState(isOpen);
+    const [prevQuery, setPrevQuery] = useState(query);
+
+    if (isOpen !== prevOpen) {
+        setPrevOpen(isOpen);
+        if (isOpen) {
+            setQuery('');
+            setSelectedIndex(0);
+        }
+    }
+
+    if (query !== prevQuery) {
+        setPrevQuery(query);
+        setSelectedIndex(0);
+    }
 
     // Keyboard navigation within palette
     const handleInputKeyDown = (e: React.KeyboardEvent) => {
@@ -99,9 +114,7 @@ export default function CommandPalette() {
         }
     };
 
-    useEffect(() => {
-        setSelectedIndex(0);
-    }, [query]);
+
 
     if (!isOpen) return null;
 

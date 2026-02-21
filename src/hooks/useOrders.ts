@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-interface OrderRequest {
+export interface OrderRequest {
     symbol: string;
     qty: number;
     side: 'buy' | 'sell';
@@ -25,14 +25,14 @@ interface OrderRequest {
 interface OrderResponse {
     success: boolean;
     message?: string;
-    order?: any;
+    order?: unknown;
     error?: string;
 }
 
 export function useOrders() {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [lastOrder, setLastOrder] = useState<any>(null);
+    const [lastOrder, setLastOrder] = useState<unknown>(null);
 
     const submitOrder = async (orderData: OrderRequest): Promise<OrderResponse> => {
         setSubmitting(true);
@@ -58,8 +58,8 @@ export function useOrders() {
             } else {
                 throw new Error(data.message || data.error || 'Order submission failed');
             }
-        } catch (err: any) {
-            const errorMessage = err.message || 'Error submitting order';
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Error submitting order';
             setError(errorMessage);
             return { success: false, error: errorMessage };
         } finally {

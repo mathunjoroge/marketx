@@ -82,8 +82,9 @@ export default function TrailingStopForm({
             } else {
                 setError(data.error || 'Failed to submit trailing stop order');
             }
-        } catch (err: any) {
-            setError(err.message || 'Network error');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Network error';
+            setError(errorMessage);
         } finally {
             setSubmitting(false);
         }
@@ -125,8 +126,8 @@ export default function TrailingStopForm({
                             <button
                                 onClick={() => setTrailType('percent')}
                                 className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${trailType === 'percent'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                                     }`}
                             >
                                 Percentage
@@ -134,8 +135,8 @@ export default function TrailingStopForm({
                             <button
                                 onClick={() => setTrailType('price')}
                                 className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${trailType === 'price'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                                     }`}
                             >
                                 Dollar Amount

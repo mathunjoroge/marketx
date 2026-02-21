@@ -14,6 +14,7 @@ export interface ApiErrorResponse {
     success: false;
     error: string;
     details?: unknown;
+    targetId?: string;
 }
 
 export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
@@ -24,9 +25,9 @@ export function apiSuccess<T>(data: T, status = 200): NextResponse<ApiSuccessRes
 }
 
 /** Build a standardized error response */
-export function apiError(error: string, status = 500, details?: unknown): NextResponse<ApiErrorResponse> {
+export function apiError(error: string, status = 500, details?: unknown, targetId?: string): NextResponse<ApiErrorResponse> {
     return NextResponse.json(
-        { success: false as const, error, ...(details ? { details } : {}) },
+        { success: false as const, error, ...(details ? { details } : {}), ...(targetId ? { targetId } : {}) },
         { status }
     );
 }
@@ -56,13 +57,17 @@ export async function requireAuth(): Promise<{ userId: string } | NextResponse<A
  * Parse Alpaca API errors into user-friendly messages.
  * Alpaca errors come in various formats from the REST API.
  */
-export function parseAlpacaError(error: any): string {
+export function parseAlpacaError(error: unknown): string {
+    const err = error as {
+        response?: { data?: { message?: string } },
+        message?: string
+    };
     // Alpaca REST API errors often have a message property
-    if (error?.response?.data?.message) {
-        return error.response.data.message;
+    if (err?.response?.data?.message) {
+        return err.response.data.message;
     }
-    if (error?.message) {
-        return error.message;
+    if (err?.message) {
+        return err.message;
     }
     return 'An unexpected trading error occurred';
 }

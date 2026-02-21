@@ -8,13 +8,20 @@ interface MarketDataConfig {
     subscribeDetails?: boolean; // If true, fetches full details (quote + history + indicators)
 }
 
+interface MarketDataResponse {
+    price: number;
+    change: number;
+    changePercent: number;
+    [key: string]: unknown;
+}
+
 export function useMarketData(
     symbol: string,
     assetClass: string,
     options: MarketDataConfig = {}
 ) {
     const { country } = useMarket();
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<MarketDataResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -46,12 +53,13 @@ export function useMarketData(
                 throw new Error(`Failed to fetch market data: ${res.statusText}`);
             }
 
-            const json = await res.json();
+            const json: MarketDataResponse = await res.json();
             setData(json);
             setError(null);
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Error fetching market data';
             console.error('Market data fetch error:', err);
-            setError(err.message || 'Error fetching market data');
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

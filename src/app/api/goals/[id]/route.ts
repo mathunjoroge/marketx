@@ -50,8 +50,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
             remaining: Math.max(goal.targetAmount - goal.currentAmount, 0),
             isComplete: goal.currentAmount >= goal.targetAmount,
         });
-    } catch (error: any) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message }, { status: 500 });
     }
 }
 
@@ -73,7 +74,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
         await prisma.goal.delete({ where: { id } });
         return NextResponse.json({ message: 'Deleted' });
-    } catch (error: any) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message }, { status: 500 });
     }
 }

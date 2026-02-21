@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { DollarSign, TrendingUp, Wallet, PieChart } from 'lucide-react';
 import TrailingStopForm from './TrailingStopForm';
-import { useAccount, Position, Account } from '@/hooks/useAccount';
+import { useAccount, Position } from '@/hooks/useAccount';
 import Link from 'next/link';
 
 export default function PortfolioDashboard({ compact = false }: { compact?: boolean }) {
@@ -34,8 +34,8 @@ export default function PortfolioDashboard({ compact = false }: { compact?: bool
             } else {
                 alert(`Error: ${data.error || 'Failed to close position'}`);
             }
-        } catch (err: any) {
-            alert(`Error: ${err.message}`);
+        } catch (err: unknown) {
+            alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
         }
     };
 

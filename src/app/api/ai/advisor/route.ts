@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db/prisma';
-import { generateStructuredAdvice, AIAdvice } from '@/lib/ai/gemini';
+import { generateStructuredAdvice } from '@/lib/ai/gemini';
 import { rateLimit } from '@/lib/rate-limit';
 import { getUserSubscriptionTier, TIER_CONFIGS } from '@/lib/subscription';
 import logger from '@/lib/logger';
 
 export const maxDuration = 60; // Allow longer timeout for AI generation
 
-export async function POST(req: Request) {
+export async function POST() {
     try {
         const session = await auth();
         if (!session || !session.user) {
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
             transactions,
             budgets,
             userSettings,
-            portfolio,
+            , // NextAuth accounts
             availableProducts,
             goals,
             userCredentials

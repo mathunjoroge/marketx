@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserServices } from '@/lib/auth/credentials';
-import { requireAuth, apiError, apiSuccess } from '@/lib/api-helpers';
+import { requireAuth, apiSuccess } from '@/lib/api-helpers';
 
 type RouteProps = {
     params: Promise<{
@@ -33,12 +33,13 @@ export async function GET(request: NextRequest, { params }: RouteProps) {
         }
 
         return apiSuccess({ position });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching position:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch position';
         return NextResponse.json(
             {
                 success: false,
-                error: error.message || 'Failed to fetch position',
+                error: errorMessage,
             },
             { status: 500 }
         );
@@ -63,7 +64,7 @@ export async function DELETE(request: NextRequest, { params }: RouteProps) {
         const qty = searchParams.get('qty');
         const percentage = searchParams.get('percentage');
 
-        const closeRequest: any = { symbol };
+        const closeRequest: { symbol: string; qty?: number; percentage?: number } = { symbol };
 
         if (qty) {
             closeRequest.qty = parseInt(qty);
@@ -77,12 +78,13 @@ export async function DELETE(request: NextRequest, { params }: RouteProps) {
             order,
             message: `Position ${symbol} closed successfully`,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error closing position:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to close position';
         return NextResponse.json(
             {
                 success: false,
-                error: error.message || 'Failed to close position',
+                error: errorMessage,
             },
             { status: 500 }
         );

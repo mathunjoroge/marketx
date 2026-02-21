@@ -42,8 +42,9 @@ export async function generateFinancialAdvice(
         const result = await model.generateContent(fullPrompt);
         const response = await result.response;
         return response.text();
-    } catch (error: any) {
-        logger.error(`Gemini API Error: ${error.message}`);
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error(`Gemini API Error: ${errorMessage}`);
         throw new Error('Failed to generate AI advice.');
     }
 }
@@ -61,20 +62,30 @@ export interface AIAdvice {
     summary: string;
     recommendations: string[];
     tradingSuggestions: AISuggestion[];
-    productSuggestions?: AffiliateProduct[];
+    productSuggestions?: (AffiliateProduct & { reason: string })[];
+}
+
+interface FinancialContext {
+    financials?: {
+        recentTransactions?: {
+            description: string;
+            [key: string]: unknown;
+        }[];
+    };
+    [key: string]: unknown;
 }
 
 /**
  * Sanitizes financial context by masking potentially sensitive PII.
  * Focuses on transaction descriptions which often contain names or personal info.
  */
-function maskPII(context: any): any {
+function maskPII(context: FinancialContext): FinancialContext {
     if (!context) return context;
 
-    const maskedContext = JSON.parse(JSON.stringify(context));
+    const maskedContext: FinancialContext = JSON.parse(JSON.stringify(context));
 
     if (maskedContext.financials && maskedContext.financials.recentTransactions) {
-        maskedContext.financials.recentTransactions = maskedContext.financials.recentTransactions.map((t: any) => ({
+        maskedContext.financials.recentTransactions = maskedContext.financials.recentTransactions.map(t => ({
             ...t,
             // Mask description but keep enough for categorization (e.g. "Transfer from John Doe" -> "Transfer from ****")
             description: t.description ? t.description.replace(/\b([A-Z][a-z]+ [A-Z][a-z]+)\b/g, '****') : t.description
@@ -85,7 +96,7 @@ function maskPII(context: any): any {
 }
 
 export async function generateStructuredAdvice(
-    context: any, // Financial context
+    context: FinancialContext, // Financial context
     availableProducts: AffiliateProduct[] = [],
     userApiKey?: string | null
 ): Promise<AIAdvice> {
@@ -145,18 +156,19 @@ export async function generateStructuredAdvice(
         const parsed = JSON.parse(text);
 
         // Map derived product suggestions back to full product objects
-        const enrichedProducts = parsed.productSuggestions?.map((s: any) => {
+        const enrichedProducts = parsed.productSuggestions?.map((s: { id: string; reason: string }) => {
             const product = availableProducts.find(p => p.id === s.id);
             return product ? { ...product, reason: s.reason } : null;
-        }).filter(Boolean) || [];
+        }).filter((p: unknown): p is (AffiliateProduct & { reason: string }) => p !== null) || [];
 
         return {
             ...parsed,
             productSuggestions: enrichedProducts
         } as AIAdvice;
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error('DEBUG - Gemini Error:', error);
-        logger.error(`Gemini Structured API Error: ${error.message}`, { error, stack: error.stack });
+        logger.error(`Gemini Structured API Error: ${errorMessage}`, { error, stack: error instanceof Error ? error.stack : undefined });
         return {
             summary: "Error generating advice.",
             recommendations: [],

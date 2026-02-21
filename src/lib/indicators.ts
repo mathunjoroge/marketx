@@ -39,8 +39,8 @@ export function calculateRSI(data: number[], period: number = 14): number[] {
             else losses -= diff;
 
             if (i === period) {
-                let avgGain = gains / period;
-                let avgLoss = losses / period;
+                const avgGain = gains / period;
+                const avgLoss = losses / period;
                 const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
                 rsi.push(100 - 100 / (1 + rs));
             } else {
@@ -106,7 +106,6 @@ export function calculateVWAP(bars: HistoricalBar[]): number[] {
 }
 
 export function calculateADX(bars: HistoricalBar[], period: number = 14): number[] {
-    const adx: number[] = [];
     const plusDM: number[] = [];
     const minusDM: number[] = [];
     const tr: number[] = [];

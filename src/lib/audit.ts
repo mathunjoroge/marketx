@@ -11,7 +11,7 @@ export async function logAuditEvent({
 }: {
     actorId: string;
     action: string;
-    details?: any;
+    details?: unknown;
     targetId?: string;
 }) {
     try {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUserServices } from '@/lib/auth/credentials';
-import { requireAuth, apiError } from '@/lib/api-helpers';
+import { requireAuth } from '@/lib/api-helpers';
 import {
     calculatePerformanceMetrics,
     buildEquityCurve,
@@ -43,7 +43,7 @@ export async function GET() {
 
                 // For now, estimate P&L based on current positions
                 // In production, match buy/sell pairs for exact P&L
-                let profit = 0;
+                const profit = 0;
 
                 return {
                     id: order.id,
@@ -108,12 +108,13 @@ export async function GET() {
             equityCurve,
             recentTrades: trades.slice(0, 10), // Last 10 trades
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching analytics:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return NextResponse.json(
             {
                 success: false,
-                error: error.message,
+                error: errorMessage,
             },
             { status: 500 }
         );

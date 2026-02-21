@@ -67,13 +67,14 @@ export async function POST(request: NextRequest) {
         });
 
         // Remove password from response
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password: _, ...userWithoutPassword } = user;
 
         return NextResponse.json(
             { message: 'User registered successfully', user: userWithoutPassword },
             { status: 201 }
         );
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Registration error:', error);
         return NextResponse.json(
             { message: 'Internal server error' },

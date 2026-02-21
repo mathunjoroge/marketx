@@ -32,7 +32,7 @@ export async function POST(request: Request) {
             return apiError('Account value and entry price must be positive numbers', 400);
         }
 
-        const response: any = {
+        const response: Record<string, unknown> = {
             success: true,
         };
 
@@ -63,8 +63,8 @@ export async function POST(request: Request) {
                     );
                     response.recommended = recommended;
                 }
-            } catch (error: any) {
-                response.positionSizeError = error.message;
+            } catch (error: unknown) {
+                response.positionSizeError = error instanceof Error ? error.message : 'Unknown error';
             }
         }
 
@@ -81,14 +81,14 @@ export async function POST(request: Request) {
                     targetPrice
                 );
                 response.riskReward = riskReward;
-            } catch (error: any) {
-                response.riskRewardError = error.message;
+            } catch (error: unknown) {
+                response.riskRewardError = error instanceof Error ? error.message : 'Unknown error';
             }
         }
 
         return NextResponse.json(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error calculating risk:', error);
-        return apiError(error.message || 'Failed to calculate risk');
+        return apiError(error instanceof Error ? error.message : 'Failed to calculate risk');
     }
 }

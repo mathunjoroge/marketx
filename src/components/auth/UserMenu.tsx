@@ -3,7 +3,7 @@
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { User, Settings, LogOut, ChevronDown, BarChart3, Briefcase, Shield, Star } from 'lucide-react';
+import { Settings, LogOut, ChevronDown, BarChart3, Briefcase, Shield, Star } from 'lucide-react';
 
 export default function UserMenu() {
     const { data: session, status } = useSession();

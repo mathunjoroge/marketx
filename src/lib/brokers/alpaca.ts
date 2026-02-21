@@ -28,7 +28,7 @@ export interface AlpacaConfig {
  * Handles all interactions with Alpaca Trading API
  */
 export class AlpacaBrokerService {
-    private client: any;
+    private client: Alpaca;
 
     constructor(config?: AlpacaConfig) {
         if (config) {
@@ -49,9 +49,10 @@ export class AlpacaBrokerService {
         try {
             const account = await this.client.getAccount();
             return account as unknown as Account;
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error('Error fetching account:', error);
-            throw new Error(`Failed to fetch account: ${error.message}`);
+            throw new Error(`Failed to fetch account: ${errorMessage}`);
         }
     }
 
@@ -62,9 +63,10 @@ export class AlpacaBrokerService {
         try {
             const positions = await this.client.getPositions();
             return positions as unknown as Position[];
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error('Error fetching positions:', error);
-            throw new Error(`Failed to fetch positions: ${error.message}`);
+            throw new Error(`Failed to fetch positions: ${errorMessage}`);
         }
     }
 
@@ -75,12 +77,13 @@ export class AlpacaBrokerService {
         try {
             const position = await this.client.getPosition(symbol);
             return position as unknown as Position;
-        } catch (error: any) {
-            if (error.message?.includes('position does not exist')) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            if (errorMessage.includes('position does not exist')) {
                 return null;
             }
             console.error(`Error fetching position for ${symbol}:`, error);
-            throw new Error(`Failed to fetch position: ${error.message}`);
+            throw new Error(`Failed to fetch position: ${errorMessage}`);
         }
     }
 
@@ -105,9 +108,10 @@ export class AlpacaBrokerService {
             });
 
             return order as unknown as Order;
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error('Error submitting order:', error);
-            throw new Error(`Failed to submit order: ${error.message}`);
+            throw new Error(`Failed to submit order: ${errorMessage}`);
         }
     }
 
@@ -122,18 +126,20 @@ export class AlpacaBrokerService {
         direction?: 'asc' | 'desc';
     }): Promise<Order[]> {
         try {
+            // Explicitly cast to unknown and then to internal library type to avoid 'any'
             const orders = await this.client.getOrders({
                 status: params?.status || 'all',
                 limit: params?.limit || 100,
                 after: params?.after,
                 until: params?.until,
                 direction: params?.direction || 'desc',
-            });
+            } as unknown as Parameters<typeof this.client.getOrders>[0]);
 
             return orders as unknown as Order[];
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error('Error fetching orders:', error);
-            throw new Error(`Failed to fetch orders: ${error.message}`);
+            throw new Error(`Failed to fetch orders: ${errorMessage}`);
         }
     }
 
@@ -144,9 +150,10 @@ export class AlpacaBrokerService {
         try {
             const order = await this.client.getOrder(orderId);
             return order as unknown as Order;
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error(`Error fetching order ${orderId}:`, error);
-            throw new Error(`Failed to fetch order: ${error.message}`);
+            throw new Error(`Failed to fetch order: ${errorMessage}`);
         }
     }
 
@@ -156,9 +163,10 @@ export class AlpacaBrokerService {
     async cancelOrder(orderId: string): Promise<void> {
         try {
             await this.client.cancelOrder(orderId);
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error(`Error canceling order ${orderId}:`, error);
-            throw new Error(`Failed to cancel order: ${error.message}`);
+            throw new Error(`Failed to cancel order: ${errorMessage}`);
         }
     }
 
@@ -168,9 +176,10 @@ export class AlpacaBrokerService {
     async cancelAllOrders(): Promise<void> {
         try {
             await this.client.cancelAllOrders();
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error('Error canceling all orders:', error);
-            throw new Error(`Failed to cancel all orders: ${error.message}`);
+            throw new Error(`Failed to cancel all orders: ${errorMessage}`);
         }
     }
 
@@ -179,7 +188,11 @@ export class AlpacaBrokerService {
      */
     async closePosition(request: ClosePositionRequest): Promise<Order> {
         try {
-            const options: any = {};
+            interface ClosePositionOptions {
+                qty?: number;
+                percentage?: number;
+            }
+            const options: ClosePositionOptions = {};
 
             if (request.qty) {
                 options.qty = request.qty;
@@ -187,11 +200,16 @@ export class AlpacaBrokerService {
                 options.percentage = request.percentage;
             }
 
-            const order = await this.client.closePosition(request.symbol, options);
+            // The closePosition method on the Alpaca client might not be correctly typed in some versions
+            // Using a safe cast to unknown then to a function to avoid 'any'
+            const closePositionFn = (this.client as unknown as { closePosition: (symbol: string, options: ClosePositionOptions) => Promise<unknown> }).closePosition;
+            const order = await closePositionFn.call(this.client, request.symbol, options);
+
             return order as unknown as Order;
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error(`Error closing position for ${request.symbol}:`, error);
-            throw new Error(`Failed to close position: ${error.message}`);
+            throw new Error(`Failed to close position: ${errorMessage}`);
         }
     }
 
@@ -202,9 +220,10 @@ export class AlpacaBrokerService {
         try {
             const orders = await this.client.closeAllPositions();
             return orders as unknown as Order[];
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error('Error closing all positions:', error);
-            throw new Error(`Failed to close all positions: ${error.message}`);
+            throw new Error(`Failed to close all positions: ${errorMessage}`);
         }
     }
 
@@ -245,7 +264,7 @@ export class AlpacaBrokerService {
         try {
             const clock = await this.client.getClock();
             return clock.is_open;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error checking market status:', error);
             return false;
         }
@@ -254,13 +273,14 @@ export class AlpacaBrokerService {
     /**
      * Get market calendar
      */
-    async getCalendar(start?: string, end?: string): Promise<any[]> {
+    async getCalendar(start?: string, end?: string): Promise<unknown[]> {
         try {
             const calendar = await this.client.getCalendar({ start, end });
-            return calendar;
-        } catch (error: any) {
+            return calendar as unknown as unknown[];
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error('Error fetching calendar:', error);
-            throw new Error(`Failed to fetch calendar: ${error.message}`);
+            throw new Error(`Failed to fetch calendar: ${errorMessage}`);
         }
     }
     /**
@@ -268,7 +288,24 @@ export class AlpacaBrokerService {
      */
     async submitBracketOrder(request: BracketOrderRequest): Promise<Order> {
         try {
-            const orderPayload: any = {
+            interface BracketOrderPayload {
+                symbol: string;
+                qty: number;
+                side: 'buy' | 'sell';
+                type: 'market' | 'limit' | 'stop' | 'stop_limit' | 'trailing_stop';
+                time_in_force: string;
+                order_class: 'bracket';
+                take_profit: {
+                    limit_price: number;
+                };
+                stop_loss: {
+                    stop_price: number;
+                    limit_price?: number;
+                };
+                limit_price?: number;
+            }
+
+            const orderPayload: BracketOrderPayload = {
                 symbol: request.symbol,
                 qty: request.qty,
                 side: request.side,
@@ -291,11 +328,12 @@ export class AlpacaBrokerService {
                 orderPayload.stop_loss.limit_price = request.stop_loss.limit_price;
             }
 
-            const order = await this.client.createOrder(orderPayload);
+            const order = await this.client.createOrder(orderPayload as unknown as Parameters<typeof this.client.createOrder>[0]);
             return order as unknown as Order;
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error('Error submitting bracket order:', error);
-            throw new Error(`Failed to submit bracket order: ${error.message}`);
+            throw new Error(`Failed to submit bracket order: ${errorMessage}`);
         }
     }
 
@@ -304,7 +342,17 @@ export class AlpacaBrokerService {
      */
     async submitTrailingStop(request: TrailingStopRequest): Promise<Order> {
         try {
-            const orderPayload: any = {
+            interface TrailingStopPayload {
+                symbol: string;
+                qty: number;
+                side: 'buy' | 'sell';
+                type: 'trailing_stop';
+                time_in_force: 'gtc';
+                trail_percent?: number;
+                trail_price?: number;
+            }
+
+            const orderPayload: TrailingStopPayload = {
                 symbol: request.symbol,
                 qty: request.qty,
                 side: request.side,
@@ -320,11 +368,12 @@ export class AlpacaBrokerService {
                 throw new Error('Either trail_percent or trail_price must be specified');
             }
 
-            const order = await this.client.createOrder(orderPayload);
+            const order = await this.client.createOrder(orderPayload as unknown as Parameters<typeof this.client.createOrder>[0]);
             return order as unknown as Order;
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             console.error('Error submitting trailing stop:', error);
-            throw new Error(`Failed to submit trailing stop: ${error.message}`);
+            throw new Error(`Failed to submit trailing stop: ${errorMessage}`);
         }
     }
 }

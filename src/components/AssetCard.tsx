@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Info, TrendingUp, TrendingDown, AlertCircle, Maximize2, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertCircle, Maximize2, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import { StackedEdgeResult } from '@/lib/stackedEdge';
 import { useMarketData } from '@/hooks/useMarketData';
 import MarketChart from './MarketChart';

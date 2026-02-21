@@ -15,6 +15,16 @@ const credentialsSchema = z.object({
     googleApiKey: z.string().optional(),
 });
 
+interface UpdateData {
+    alpacaKeyId?: string;
+    alpacaSecret?: string;
+    fmpApiKey?: string;
+    finnhubApiKey?: string;
+    eodhdApiKey?: string;
+    ipinfoToken?: string;
+    googleApiKey?: string;
+}
+
 /**
  * Mask a secret key for safe display.
  * Shows only the last 4 characters, rest replaced with asterisks.
@@ -44,7 +54,7 @@ async function safeDecrypt(value: string | null | undefined, fieldName: string):
     }
 }
 
-export async function GET(req: Request) {
+export async function GET() {
     const session = await auth();
 
     if (!session || !session.user) {
@@ -80,8 +90,9 @@ export async function GET(req: Request) {
             ipinfoToken: maskKey(ipinfoToken),
             googleApiKey: maskKey(googleApiKey),
         });
-    } catch (error) {
-        logger.error('Error fetching credentials', { error });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error('Error fetching credentials', { error: errorMessage });
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -104,7 +115,7 @@ export async function POST(req: Request) {
         const { alpacaKeyId, alpacaSecret, fmpApiKey, finnhubApiKey, eodhdApiKey, ipinfoToken, googleApiKey } = result.data;
 
         // Encrypt values
-        const updateData: any = {};
+        const updateData: UpdateData = {};
         if (alpacaKeyId) updateData.alpacaKeyId = await encrypt(alpacaKeyId);
         if (alpacaSecret) updateData.alpacaSecret = await encrypt(alpacaSecret);
         if (fmpApiKey) updateData.fmpApiKey = await encrypt(fmpApiKey);
@@ -113,7 +124,7 @@ export async function POST(req: Request) {
         if (ipinfoToken) updateData.ipinfoToken = await encrypt(ipinfoToken);
         if (googleApiKey) updateData.googleApiKey = await encrypt(googleApiKey);
 
-        const credentials = await prisma.userCredentials.upsert({
+        await prisma.userCredentials.upsert({
             where: { userId: session.user.id },
             update: updateData,
             create: {
@@ -129,8 +140,9 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json({ message: 'Credentials updated successfully' });
-    } catch (error) {
-        logger.error('Error updating credentials', { error });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error('Error updating credentials', { error: errorMessage });
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }

@@ -2,7 +2,6 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useMarketData } from '@/hooks/useMarketData';
 
 // Mock the context
-/* eslint-disable react/display-name */
 jest.mock('@/context/MarketContext', () => ({
     useMarket: () => ({ country: 'US' })
 }));

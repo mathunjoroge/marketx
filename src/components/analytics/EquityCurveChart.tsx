@@ -11,10 +11,13 @@ import {
     Title,
     Tooltip,
     Legend,
-    Filler
+    Filler,
+    ScriptableContext,
+    TooltipItem,
+    ChartOptions
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { PerformanceMetrics, EquityPoint } from '@/lib/trading/analytics';
+import { EquityPoint } from '@/lib/trading/analytics';
 
 ChartJS.register(
     CategoryScale,
@@ -75,7 +78,7 @@ export default function EquityCurveChart({ equityCurve }: EquityCurveChartProps)
                 label: 'Portfolio Equity',
                 data: equityCurve.map(p => p.equity),
                 borderColor: '#4f46e5', // Indigo
-                backgroundColor: (context: any) => {
+                backgroundColor: (context: ScriptableContext<'line'>) => {
                     const ctx = context.chart.ctx;
                     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
                     gradient.addColorStop(0, 'rgba(79, 70, 229, 0.2)');
@@ -110,7 +113,7 @@ export default function EquityCurveChart({ equityCurve }: EquityCurveChartProps)
                 padding: 10,
                 displayColors: false,
                 callbacks: {
-                    label: function (context: any) {
+                    label: function (context: TooltipItem<'line'>) {
                         let label = context.dataset.label || '';
                         if (label) {
                             label += ': ';
@@ -148,8 +151,9 @@ export default function EquityCurveChart({ equityCurve }: EquityCurveChartProps)
                     font: {
                         size: 10
                     },
-                    callback: function (value: any) {
-                        return '$' + value / 1000 + 'k';
+                    callback: function (value: number | string) {
+                        const numericValue = typeof value === 'string' ? parseFloat(value) : value;
+                        return '$' + numericValue / 1000 + 'k';
                     }
                 }
             },
@@ -160,6 +164,8 @@ export default function EquityCurveChart({ equityCurve }: EquityCurveChartProps)
             intersect: false
         }
     };
+
+    const typedOptions: ChartOptions<'line'> = options;
 
     return (
         <div style={{
@@ -174,7 +180,7 @@ export default function EquityCurveChart({ equityCurve }: EquityCurveChartProps)
                 Equity Curve
             </h3>
             <div className="h-80">
-                <Line options={options} data={data} key={equityCurve.length} />
+                <Line options={typedOptions} data={data} key={equityCurve.length} />
             </div>
         </div>
     );

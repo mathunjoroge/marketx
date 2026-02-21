@@ -1,10 +1,9 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db/prisma';
-import { isAdminRole } from '@/lib/auth/roles';
 
 // GET /api/export/audit — export audit log as CSV (SUPER_ADMIN, COMPLIANCE_OFFICER only)
-export async function GET(request: NextRequest) {
+export async function GET() {
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });

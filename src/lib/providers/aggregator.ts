@@ -123,7 +123,7 @@ export class MarketDataAggregator {
                     await setCachedData(cacheKey, quote, 10);
                     return quote;
                 }
-            } catch (err) {
+            } catch {
                 logger.warn(`Provider ${provider.name} failed for ${formattedSymbol}, trying next...`);
             }
         }
@@ -151,7 +151,7 @@ export class MarketDataAggregator {
                     await setCachedData(cacheKey, history, 3600);
                     return history;
                 }
-            } catch (err) {
+            } catch {
                 logger.warn(`Provider ${provider.name} history failed for ${formattedSymbol}, trying next...`);
             }
         }

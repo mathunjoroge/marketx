@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { Bell, Check, CheckCheck, X, Info, AlertTriangle, Zap, Shield } from 'lucide-react';
+import { Bell, CheckCheck, X, Info, AlertTriangle, Zap, Shield } from 'lucide-react';
 
 interface Notification {
     id: string;
@@ -10,11 +10,11 @@ interface Notification {
     title: string;
     message: string;
     read: boolean;
-    data?: any;
+    data?: Record<string, unknown>;
     createdAt: string;
 }
 
-const TYPE_CONFIG: Record<string, { icon: any; color: string }> = {
+const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string }> = {
     order_fill: { icon: Zap, color: '#10b981' },
     price_alert: { icon: AlertTriangle, color: '#f59e0b' },
     announcement: { icon: Info, color: '#3b82f6' },

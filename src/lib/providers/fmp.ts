@@ -44,9 +44,9 @@ export class FMPAdapter implements MarketDataProvider {
                 assetClass,
                 provider: this.name,
             };
-        } catch (error) {
-            logger.error(`FMP error for ${symbol}:`, error);
-            throw error;
+        } catch (err: unknown) {
+            logger.error(`FMP error for ${symbol}:`, err);
+            throw err;
         }
     }
 
@@ -70,14 +70,23 @@ export class FMPAdapter implements MarketDataProvider {
                 params: { apikey: this.apiKey },
             });
 
-            let bars: any[] = [];
+            interface FMPHistoricalBar {
+                date: string;
+                open: number;
+                high: number;
+                low: number;
+                close: number;
+                volume: number;
+            }
+
+            let bars: FMPHistoricalBar[] = [];
             if (interval === '1d') {
                 bars = response.data.historical || [];
             } else {
                 bars = response.data || [];
             }
 
-            return bars.slice(0, limit).map((v: any) => ({
+            return bars.slice(0, limit).map((v: FMPHistoricalBar) => ({
                 time: new Date(v.date).getTime(),
                 open: v.open,
                 high: v.high,
@@ -85,9 +94,9 @@ export class FMPAdapter implements MarketDataProvider {
                 close: v.close,
                 volume: v.volume || 0,
             })).reverse(); // FMP returns newest first
-        } catch (error) {
-            logger.error(`FMP history error for ${symbol}:`, error);
-            throw error;
+        } catch (err: unknown) {
+            logger.error(`FMP history error for ${symbol}:`, err);
+            throw err;
         }
     }
 

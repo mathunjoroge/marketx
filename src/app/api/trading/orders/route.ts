@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserServices } from '@/lib/auth/credentials';
-import { requireAuth, apiError, parseNumeric, apiSuccess } from '@/lib/api-helpers';
+import { requireAuth, apiSuccess } from '@/lib/api-helpers';
 import { enforceRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import type { OrderRequest } from '@/lib/brokers/types';
 
@@ -101,12 +101,13 @@ export async function POST(request: NextRequest) {
             order,
             message: `${body.type.toUpperCase()} ${body.side.toUpperCase()} order submitted successfully`,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error submitting order:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to submit order';
         return NextResponse.json(
             {
                 success: false,
-                error: error.message || 'Failed to submit order',
+                error: errorMessage,
             },
             { status: 500 }
         );
@@ -130,12 +131,13 @@ export async function GET(request: NextRequest) {
         const orders = await alpaca.getOrders({ status, limit });
 
         return apiSuccess({ orders });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching orders:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch orders';
         return NextResponse.json(
             {
                 success: false,
-                error: error.message || 'Failed to fetch orders',
+                error: errorMessage,
             },
             { status: 500 }
         );

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getUserServices } from '@/lib/auth/credentials';
 import { requireAuth, apiError, apiSuccess } from '@/lib/api-helpers';
 import { getRedisClient } from '@/lib/redis';
@@ -7,7 +7,7 @@ import { getRedisClient } from '@/lib/redis';
  * GET /api/trading/account
  * Fetch account information including cash, buying power, and portfolio value
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         // Require authentication
         const authResult = await requireAuth();
@@ -45,8 +45,9 @@ export async function GET(request: NextRequest) {
         }
 
         return apiSuccess({ account });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching account:', error);
-        return apiError(error.message || 'Failed to fetch account information');
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch account information';
+        return apiError(errorMessage);
     }
 }

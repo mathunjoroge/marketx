@@ -29,13 +29,13 @@ describe('AI Advisor API Integration', () => {
 
         // Call 1-3 should succeed (FREE tier limit is 3)
         for (let i = 0; i < 3; i++) {
-            const res = await POST(req as any);
+            const res = await POST(req as unknown as Request);
             expect(res.status).toBe(200);
             expect(res.headers.get('X-RateLimit-Remaining')).toBe((2 - i).toString());
         }
 
         // Call 4 should fail
-        const res4 = await POST(req as any);
+        const res4 = await POST(req as unknown as Request);
         expect(res4.status).toBe(429);
         const data = await res4.json();
         expect(data.message).toContain('reached your daily limit');

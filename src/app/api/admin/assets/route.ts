@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db/prisma';
-import { isAdminRole } from '@/lib/auth/roles';
 import { logAuditEvent } from '@/lib/audit';
 
 async function requireMarketAdmin() {
@@ -50,8 +49,8 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(asset, { status: 201 });
-    } catch (err: any) {
-        if (err?.code === 'P2002') {
+    } catch (err: unknown) {
+        if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
             return NextResponse.json({ message: 'Asset already featured' }, { status: 409 });
         }
         return NextResponse.json({ message: 'Failed to add featured asset' }, { status: 500 });
