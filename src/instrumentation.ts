@@ -53,6 +53,6 @@ export async function register() {
     }
 
     if (missing.length === 0 && missingRecommended.length === 0) {
-        console.log('✅ All environment variables configured');
+        console.info('✅ All environment variables configured');
     }
 }

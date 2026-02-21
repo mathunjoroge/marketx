@@ -110,7 +110,13 @@ export default function NotificationBell() {
                 @media (max-width: 480px) { .notif-panel { width: calc(100vw - 2rem); right: -60px; } }
             `}</style>
 
-            <button className="notif-bell" onClick={() => setOpen(!open)} aria-label="Notifications">
+            <button
+                className="notif-bell"
+                onClick={() => setOpen(!open)}
+                aria-label="Notifications"
+                aria-haspopup="true"
+                aria-expanded={open}
+            >
                 <Bell size={18} />
                 {unreadCount > 0 && (
                     <span className="notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>

@@ -167,6 +167,7 @@ export default function BracketOrderForm({
                     </div>
                     <button
                         onClick={onClose}
+                        aria-label="Close bracket order form"
                         className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
                     >
                         <X className="w-5 h-5" />
@@ -229,8 +230,9 @@ export default function BracketOrderForm({
                         {/* Quantity & Entry Price */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">Quantity</label>
+                                <label htmlFor="qty" className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">Quantity</label>
                                 <input
+                                    id="qty"
                                     type="number"
                                     value={qty}
                                     onChange={(e) => setQty(parseInt(e.target.value) || 0)}
@@ -240,10 +242,11 @@ export default function BracketOrderForm({
                             </div>
                             {orderType === 'limit' && (
                                 <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">Limit Price</label>
+                                    <label htmlFor="limitPrice" className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">Limit Price</label>
                                     <div className="relative">
                                         <span className="absolute left-3 top-2.5 text-gray-500">$</span>
                                         <input
+                                            id="limitPrice"
                                             type="number"
                                             value={limitPrice}
                                             onChange={(e) => setLimitPrice(parseFloat(e.target.value) || 0)}
@@ -257,10 +260,11 @@ export default function BracketOrderForm({
 
                         {/* Stop Loss */}
                         <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10">
-                            <label className="text-xs font-bold text-red-400 uppercase tracking-wider block mb-2">Stop Loss</label>
+                            <label htmlFor="stopLoss" className="text-xs font-bold text-red-400 uppercase tracking-wider block mb-2">Stop Loss</label>
                             <div className="relative">
                                 <span className="absolute left-3 top-2.5 text-red-500/50">$</span>
                                 <input
+                                    id="stopLoss"
                                     type="number"
                                     value={stopLoss}
                                     onChange={(e) => setStopLoss(parseFloat(e.target.value) || 0)}
@@ -290,6 +294,7 @@ export default function BracketOrderForm({
                                         className="w-full bg-[#0d1117] border border-gray-700 rounded-lg pl-7 pr-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 transition-all font-mono"
                                         step="0.01"
                                         placeholder="Limit price"
+                                        aria-label="Stop limit price"
                                     />
                                 </div>
                             )}
@@ -297,10 +302,11 @@ export default function BracketOrderForm({
 
                         {/* Take Profit */}
                         <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10">
-                            <label className="text-xs font-bold text-green-400 uppercase tracking-wider block mb-2">Take Profit</label>
+                            <label htmlFor="takeProfit" className="text-xs font-bold text-green-400 uppercase tracking-wider block mb-2">Take Profit</label>
                             <div className="relative">
                                 <span className="absolute left-3 top-2.5 text-green-500/50">$</span>
                                 <input
+                                    id="takeProfit"
                                     type="number"
                                     value={takeProfit}
                                     onChange={(e) => setTakeProfit(parseFloat(e.target.value) || 0)}
@@ -311,7 +317,7 @@ export default function BracketOrderForm({
                         </div>
 
                         {/* Risk/Reward Summary */}
-                        <div className="bg-gray-900/30 border border-gray-800 rounded-xl p-5 space-y-3">
+                        <div role="region" aria-label="Order Summary" className="bg-gray-900/30 border border-gray-800 rounded-xl p-5 space-y-3">
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-400">Position Value</span>
                                 <span className="font-mono font-medium text-white">${positionValue.toFixed(2)}</span>

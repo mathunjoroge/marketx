@@ -150,11 +150,13 @@ export default function AdvancedOrderPanel({
             `}</style>
 
             {/* Tabs */}
-            <div style={{
+            <div role="tablist" style={{
                 display: 'flex', gap: '0.5rem', marginBottom: '1.5rem',
                 backgroundColor: '#0d1117', padding: '0.25rem', borderRadius: '0.75rem', border: '1px solid #30363d'
             }}>
                 <button
+                    role="tab"
+                    aria-selected={activeTab === 'simple'}
                     onClick={() => setActiveTab('simple')}
                     className={activeTab === 'simple' ? 'order-tab-active' : 'order-tab'}
                     style={{
@@ -166,6 +168,8 @@ export default function AdvancedOrderPanel({
                     Simple
                 </button>
                 <button
+                    role="tab"
+                    aria-selected={activeTab === 'advanced'}
                     onClick={() => setActiveTab('advanced')}
                     className={activeTab === 'advanced' ? 'order-tab-active' : 'order-tab'}
                     style={{
@@ -216,8 +220,9 @@ export default function AdvancedOrderPanel({
 
                 {/* Quantity */}
                 <div style={{ marginBottom: '1.25rem' }}>
-                    <label className="text-xs text-gray-400 block mb-2 font-semibold uppercase tracking-wider">Quantity</label>
+                    <label htmlFor="quantity" className="text-xs text-gray-400 block mb-2 font-semibold uppercase tracking-wider">Quantity</label>
                     <input
+                        id="quantity"
                         type="number"
                         value={quantity}
                         onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
@@ -230,8 +235,9 @@ export default function AdvancedOrderPanel({
                 {/* Limit Price Input */}
                 {orderType === 'limit' && (
                     <div style={{ marginBottom: '1.25rem' }}>
-                        <label className="text-xs text-gray-400 block mb-2 font-semibold uppercase tracking-wider">Limit Price</label>
+                        <label htmlFor="limitPrice" className="text-xs text-gray-400 block mb-2 font-semibold uppercase tracking-wider">Limit Price</label>
                         <input
+                            id="limitPrice"
                             type="number"
                             value={limitPrice}
                             onChange={(e) => setLimitPrice(parseFloat(e.target.value) || 0)}
@@ -346,8 +352,8 @@ export default function AdvancedOrderPanel({
                 {/* Message */}
                 {message && (
                     <div className={`p-3 rounded-lg text-sm ${message.toLowerCase().includes('error') || message.toLowerCase().includes('failed')
-                            ? 'bg-red-500/20 border border-red-500/50 text-red-300'
-                            : 'bg-green-500/20 border border-green-500/50 text-green-300'
+                        ? 'bg-red-500/20 border border-red-500/50 text-red-300'
+                        : 'bg-green-500/20 border border-green-500/50 text-green-300'
                         }`}>
                         {message}
                     </div>

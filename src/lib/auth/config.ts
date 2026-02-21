@@ -5,6 +5,7 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/db/prisma';
 import { isAdminRole } from '@/lib/auth/roles';
+import logger from '@/lib/logger';
 
 async function getUser(email: string): Promise<PrismaUser | null> {
     try {
@@ -42,7 +43,7 @@ export const authConfig = {
 
             if (isOnAdmin) {
                 if (!isLoggedIn) return false;
-                const role = (auth as any)?.user?.role;
+                const role = auth?.user?.role;
                 if (!isAdminRole(role)) {
                     return Response.redirect(new URL('/', nextUrl));
                 }
@@ -63,7 +64,7 @@ export const authConfig = {
                 token.email = user.email;
                 token.name = user.name;
                 token.picture = user.image;
-                token.role = (user as any).role || 'USER';
+                token.role = (user as PrismaUser).role || 'USER';
             }
 
             if (trigger === "update" && session) {
@@ -99,8 +100,8 @@ export const authConfig = {
                     if (!user) return null;
 
                     // Block suspended/banned users
-                    if ((user as any).status && (user as any).status !== 'ACTIVE') {
-                        console.log(`Login blocked: user ${email} is ${(user as any).status}`);
+                    if (user.status && user.status !== 'ACTIVE') {
+                        logger.warn(`Login blocked: user ${email} is ${user.status}`);
                         return null;
                     }
 
@@ -109,24 +110,21 @@ export const authConfig = {
 
                     // 2FA Verification
                     if (user.twoFactorEnabled) {
-                        const { code } = parsedCredentials.data as any; // Type assertion as zod schema needs update
+                        const { code } = parsedCredentials.data;
                         if (!code) {
-                            console.log('2FA required but code missing');
-                            return null; // Or throw error? NextAuth creates generic error.
+                            logger.warn('2FA required but code missing');
+                            return null;
                         }
 
-                        // Dynamically import otplib to avoid edge runtime issues if any (though bcrypt is here so it's Node)
-                        const { verify } = await import('otplib');
-                        const result = await verify({
+                        const { verify: verifyOTP } = await import('otplib');
+                        const result = await verifyOTP({
                             token: code,
                             secret: user.twoFactorSecret!,
-                            window: [1, 1]
-                        } as any);
+                            epochTolerance: 30,
+                        });
 
-                        const isValid = result && typeof result === 'object' ? result.valid : result === true;
-
-                        if (!isValid) {
-                            console.log('Invalid 2FA code');
+                        if (!result.valid) {
+                            logger.warn('Invalid 2FA code');
                             return null;
                         }
                     }
@@ -134,7 +132,7 @@ export const authConfig = {
                     return user;
                 }
 
-                console.log('Invalid credentials');
+                logger.warn('Invalid credentials attempt');
                 return null;
             },
         }),

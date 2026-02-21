@@ -1,0 +1,14 @@
+'use client';
+
+import dynamic from 'next/dynamic';
+
+const CommandPalette = dynamic(() => import('@/components/CommandPalette'), { ssr: false });
+
+export default function ClientShell({ children }: { children: React.ReactNode }) {
+    return (
+        <>
+            {children}
+            <CommandPalette />
+        </>
+    );
+}

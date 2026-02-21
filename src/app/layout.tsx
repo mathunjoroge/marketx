@@ -5,6 +5,7 @@ import AuthProvider from '@/components/auth/AuthProvider';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ThemeProvider } from '@/context/ThemeContext';
 import Header from '@/components/Header';
+import ClientShell from '@/components/ClientShell';
 
 export const metadata: Metadata = {
   title: {
@@ -41,7 +42,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <AuthProvider>
           <ToastProvider>
             <ThemeProvider>
@@ -51,7 +52,9 @@ export default function RootLayout({
                   <div className="h-16"></div> {/* Spacer for fixed header */}
                   <div className="h-16"></div> {/* Spacer for fixed header */}
                   <main className="flex-1 container mx-auto px-4 py-8">
-                    {children}
+                    <ClientShell>
+                      {children}
+                    </ClientShell>
                   </main>
                 </div>
               </MarketProvider>

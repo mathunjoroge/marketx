@@ -34,7 +34,7 @@ export default function MobileNav() {
   const menuRef = useRef<HTMLDivElement>(null);
   const { data: session, status } = useSession();
 
-  const isAdmin = ['SUPER_ADMIN', 'MARKET_ADMIN', 'COMPLIANCE_OFFICER', 'SUPPORT_AGENT'].includes((session?.user as any)?.role);
+  const isAdmin = ['SUPER_ADMIN', 'MARKET_ADMIN', 'COMPLIANCE_OFFICER', 'SUPPORT_AGENT'].includes(session?.user?.role ?? '');
 
   const allLinks = [
     ...navLinks,

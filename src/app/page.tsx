@@ -8,6 +8,8 @@ import DashboardWatchlist from '@/components/DashboardWatchlist';
 import Link from 'next/link';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
 import { ArrowRight, BarChart3, LineChart, PieChart } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import RecentTrades from '@/components/RecentTrades';
 
 export default function DashboardPage() {
   const { country } = useMarket();
@@ -37,7 +39,9 @@ export default function DashboardPage() {
             View Details <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-        <PortfolioDashboard compact={true} />
+        <ErrorBoundary>
+          <PortfolioDashboard compact={true} />
+        </ErrorBoundary>
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -48,7 +52,9 @@ export default function DashboardPage() {
               <LineChart className="w-5 h-5 text-blue-400" />
               Watchlist
             </h2>
-            <DashboardWatchlist />
+            <ErrorBoundary>
+              <DashboardWatchlist />
+            </ErrorBoundary>
           </section>
 
           <section className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700/50 p-6 backdrop-blur-sm">
@@ -56,24 +62,30 @@ export default function DashboardPage() {
               <span className="w-1 h-5 bg-blue-500 rounded-full"></span>
               Quick Actions
             </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <Link
-                href="/market"
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-blue-600 hover:bg-gray-100 rounded font-medium transition-colors border border-gray-200 active:scale-[0.98]"
-              >
-                <BarChart3 className="w-5 h-5" />
-                <span>Markets</span>
-              </Link>
+            <ErrorBoundary>
+              <div className="grid grid-cols-2 gap-4">
+                <Link
+                  href="/market"
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-blue-600 hover:bg-gray-100 rounded font-medium transition-colors border border-gray-200 active:scale-[0.98]"
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Markets</span>
+                </Link>
 
-              <Link
-                href="/analytics"
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-blue-600 hover:bg-gray-100 rounded font-medium transition-colors border border-gray-200 active:scale-[0.98]"
-              >
-                <PieChart className="w-5 h-5" />
-                <span>Analytics</span>
-              </Link>
-            </div>
+                <Link
+                  href="/analytics"
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-blue-600 hover:bg-gray-100 rounded font-medium transition-colors border border-gray-200 active:scale-[0.98]"
+                >
+                  <PieChart className="w-5 h-5" />
+                  <span>Analytics</span>
+                </Link>
+              </div>
+            </ErrorBoundary>
           </section>
+
+          <ErrorBoundary>
+            <RecentTrades />
+          </ErrorBoundary>
         </div>
 
         {/* Right Column: Market Overview */}
@@ -92,21 +104,37 @@ export default function DashboardPage() {
             {/* Top Stocks */}
             <div className="mb-6">
               <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Top Stocks</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {stocks.map(item => (
-                  <AssetCard key={item.symbol} {...item} />
-                ))}
-              </div>
+              <ErrorBoundary>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {stocks.map(item => (
+                    <AssetCard key={item.symbol} {...item} />
+                  ))}
+                </div>
+              </ErrorBoundary>
             </div>
 
             {/* Top Crypto */}
             <div className="mb-6">
               <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Top Crypto</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {crypto.map(item => (
-                  <AssetCard key={item.symbol} {...item} />
-                ))}
-              </div>
+              <ErrorBoundary>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {crypto.map(item => (
+                    <AssetCard key={item.symbol} {...item} />
+                  ))}
+                </div>
+              </ErrorBoundary>
+            </div>
+
+            {/* Top Forex */}
+            <div className="mb-6">
+              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Top Forex</h3>
+              <ErrorBoundary>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {forex.map(item => (
+                    <AssetCard key={item.symbol} {...item} />
+                  ))}
+                </div>
+              </ErrorBoundary>
             </div>
           </section>
         </div>

@@ -23,6 +23,7 @@ export default function Header() {
         { name: 'Finance', path: '/finance' },
         { name: 'Budgets', path: '/budgets' },
         { name: 'Advisor', path: '/advisor' },
+        { name: 'Pricing', path: '/pricing' },
     ];
 
     return (
@@ -30,13 +31,13 @@ export default function Header() {
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-2 md:gap-8">
                     <MobileNav />
-                    <Link href="/" style={{
+                    <Link href="/" aria-label="MarketX Home" style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.75rem',
                         textDecoration: 'none'
                     }}>
-                        <div style={{
+                        <div role="img" aria-label="MX Logo" style={{
                             width: '2.5rem',
                             height: '2.5rem',
                             borderRadius: '0.75rem',

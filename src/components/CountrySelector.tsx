@@ -32,6 +32,9 @@ export default function CountrySelector() {
         <div className="relative" ref={dropdownRef} style={{ position: 'relative' }}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+                aria-label="Select country"
                 className="flex items-center gap-2 bg-[#151b23] border border-[#30363d] px-3 py-1.5 rounded-md hover:bg-[#1c2128] focus:bg-[#1c2128] active:bg-[#1c2128] transition-colors text-sm font-medium focus:outline-none"
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', backgroundColor: '#151b23' }}
             >

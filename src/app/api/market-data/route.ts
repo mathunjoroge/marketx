@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
         if (history) {
             const data = await marketData.getHistory(
                 symbol as string,
-                assetClass as any,
+                assetClass,
                 interval as string,
                 limit,
                 country as string
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
         } else {
             const quote = await marketData.getQuote(
                 symbol as string,
-                assetClass as any,
+                assetClass,
                 country as string
             );
 
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
                 // Need at least 200 bars for SMA200
                 const historicalData = await marketData.getHistory(
                     symbol as string,
-                    assetClass as any,
+                    assetClass,
                     '1d',
                     250,
                     country as string
@@ -56,8 +56,9 @@ export async function GET(req: NextRequest) {
                 stackedEdge,
             });
         }
-    } catch (error: any) {
-        logger.error(`API Error for ${symbol}: ${error.message}`);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        logger.error(`API Error for ${symbol}: ${message}`);
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

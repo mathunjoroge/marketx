@@ -46,13 +46,13 @@ export function getSub(): Redis {
 // but they now trigger lazy initialization.
 export const pub = new Proxy({} as Redis, {
     get(_, prop) {
-        return (getPub() as any)[prop];
+        return (getPub() as unknown as Record<string | symbol, unknown>)[prop];
     }
 });
 
 export const sub = new Proxy({} as Redis, {
     get(_, prop) {
-        return (getSub() as any)[prop];
+        return (getSub() as unknown as Record<string | symbol, unknown>)[prop];
     }
 });
 

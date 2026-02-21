@@ -29,12 +29,10 @@ export async function POST(request: NextRequest) {
     const result = await verify({
         token: code,
         secret: user.twoFactorSecret,
-        window: [1, 1], // Allow previous and next step
-    } as any);
+        epochTolerance: 30,
+    });
 
-    const isValid = result && typeof result === 'object' ? result.valid : result === true;
-
-    if (!isValid) {
+    if (!result.valid) {
         return NextResponse.json({ message: 'Invalid code' }, { status: 400 });
     }
 

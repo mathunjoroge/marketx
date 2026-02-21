@@ -1,13 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import logger from '@/lib/logger';
 
-const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.AI_API_KEY || process.env.GOOGLE_API_KEY;
+const globalApiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.AI_API_KEY || process.env.GOOGLE_API_KEY;
 
-if (!apiKey) {
-    logger.warn('AI_API_KEY or GOOGLE_API_KEY is not defined. AI features will be disabled.');
+if (!globalApiKey) {
+    logger.warn('AI_API_KEY or GOOGLE_API_KEY is not defined. AI features missing global fallback.');
 }
 
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+const globalGenAI = globalApiKey ? new GoogleGenerativeAI(globalApiKey) : null;
 
 export interface AISuggestion {
     symbol: string;
@@ -26,10 +26,12 @@ export interface AIAdvice {
 
 export async function generateFinancialAdvice(
     prompt: string,
-    systemPrompt: string = "You are a professional financial advisor."
+    systemPrompt: string = "You are a professional financial advisor.",
+    userApiKey?: string | null
 ): Promise<string> {
+    const genAI = userApiKey ? new GoogleGenerativeAI(userApiKey) : globalGenAI;
     if (!genAI) {
-        throw new Error('AI service is not configured.');
+        throw new Error('AI service is not configured and no user API key provided.');
     }
 
     try {
@@ -62,10 +64,34 @@ export interface AIAdvice {
     productSuggestions?: AffiliateProduct[];
 }
 
+/**
+ * Sanitizes financial context by masking potentially sensitive PII.
+ * Focuses on transaction descriptions which often contain names or personal info.
+ */
+function maskPII(context: any): any {
+    if (!context) return context;
+
+    const maskedContext = JSON.parse(JSON.stringify(context));
+
+    if (maskedContext.financials && maskedContext.financials.recentTransactions) {
+        maskedContext.financials.recentTransactions = maskedContext.financials.recentTransactions.map((t: any) => ({
+            ...t,
+            // Mask description but keep enough for categorization (e.g. "Transfer from John Doe" -> "Transfer from ****")
+            description: t.description ? t.description.replace(/\b([A-Z][a-z]+ [A-Z][a-z]+)\b/g, '****') : t.description
+        }));
+    }
+
+    return maskedContext;
+}
+
 export async function generateStructuredAdvice(
     context: any, // Financial context
-    availableProducts: AffiliateProduct[] = []
+    availableProducts: AffiliateProduct[] = [],
+    userApiKey?: string | null
 ): Promise<AIAdvice> {
+    const maskedContext = maskPII(context);
+
+    const genAI = userApiKey ? new GoogleGenerativeAI(userApiKey) : globalGenAI;
     if (!genAI) {
         // Return mock data if no key, for dev/test
         logger.warn('Returning mock AI advice due to missing API key.');
@@ -89,7 +115,7 @@ export async function generateStructuredAdvice(
         Analyze the following user financial context and provide trading advice.
         
         Context:
-        ${JSON.stringify(context, null, 2)}
+        ${JSON.stringify(maskedContext, null, 2)}
 
         Available Affiliate Products:
         ${JSON.stringify(availableProducts, null, 2)}

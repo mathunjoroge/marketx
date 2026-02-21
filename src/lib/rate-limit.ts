@@ -1,85 +1,87 @@
-/**
- * Redis-backed Rate Limiter
- * 
- * Implements sliding-window rate limiting for API endpoints.
- * Each key tracks the number of requests within a time window.
- */
-
-import redis from './redis';
-import logger from './logger';
-import { apiError } from './api-helpers';
-import { NextResponse } from 'next/server';
-
-export interface RateLimitConfig {
-    /** Maximum number of requests allowed within the window */
-    limit: number;
-    /** Time window in seconds */
-    windowSec: number;
-}
+import redis from '@/lib/redis';
+import logger from '@/lib/logger';
 
 export interface RateLimitResult {
-    allowed: boolean;
+    success: boolean;
+    limit: number;
     remaining: number;
-    resetAt: number; // Unix timestamp when the window resets
+    reset: number;
 }
 
-/** Default rate limits for different endpoint categories */
-export const RATE_LIMITS = {
-    auth: { limit: 10, windowSec: 60 },          // 10 requests/minute for login/register
-    trading: { limit: 30, windowSec: 60 },        // 30 requests/minute for order submission
-    api: { limit: 100, windowSec: 60 },           // 100 requests/minute for general API
-} as const;
-
 /**
- * Check if a request is within the rate limit.
- * Uses Redis INCR + EXPIRE for atomic counting.
+ * Basic Token Bucket / Fixed Window rate limiter using Redis.
  * 
- * @param key Unique identifier (e.g., `ratelimit:auth:${ip}` or `ratelimit:trade:${userId}`)
- * @param config Rate limit configuration
- * @returns Result indicating if the request is allowed
+ * @param identifier Unique ID to rate limit (e.g., user ID or IP)
+ * @param limit Maximum requests allowed in the window
+ * @param windowSeconds Window size in seconds
  */
-export async function checkRateLimit(
-    key: string,
-    config: RateLimitConfig = RATE_LIMITS.api
+export async function rateLimit(
+    identifier: string,
+    limit: number,
+    windowSeconds: number
 ): Promise<RateLimitResult> {
-    try {
-        const redisKey = `ratelimit:${key}`;
-        const count = await redis.incr(redisKey);
+    const key = `ratelimit:${identifier}`;
+    const now = Math.floor(Date.now() / 1000);
+    const windowStart = now - (now % windowSeconds);
+    const windowEnd = windowStart + windowSeconds;
 
-        if (count === 1) {
-            // First request in this window — set expiry
-            await redis.expire(redisKey, config.windowSec);
+    try {
+        const current = await redis.incr(key);
+
+        if (current === 1) {
+            await redis.expire(key, windowSeconds);
         }
 
-        const ttl = await redis.ttl(redisKey);
-        const resetAt = Math.floor(Date.now() / 1000) + ttl;
-
         return {
-            allowed: count <= config.limit,
-            remaining: Math.max(0, config.limit - count),
-            resetAt,
+            success: current <= limit,
+            limit,
+            remaining: Math.max(0, limit - current),
+            reset: windowEnd,
         };
     } catch (error) {
-        // If Redis is down, allow the request (fail-open)
-        logger.warn('Rate limiter Redis error, failing open', { key, error });
-        return { allowed: true, remaining: config.limit, resetAt: 0 };
+        logger.error('Rate limit check failed', { identifier, error });
+        // Fail open to avoid blocking users if Redis is down, but log it
+        return {
+            success: true,
+            limit,
+            remaining: limit,
+            reset: windowEnd,
+        };
     }
 }
 
 /**
- * Express-style rate limit check that returns a NextResponse if rate-limited.
- * Returns null if the request is allowed.
+ * Pre-configured rate limit profiles for common use-cases.
+ */
+export const RATE_LIMITS = {
+    auth: { limit: 10, windowSeconds: 60 },
+    trading: { limit: 30, windowSeconds: 60 },
+    api: { limit: 60, windowSeconds: 60 },
+};
+
+/**
+ * Convenience wrapper that returns a 429 NextResponse if the limit is exceeded,
+ * or null if the request is allowed.
  */
 export async function enforceRateLimit(
-    key: string,
-    config: RateLimitConfig = RATE_LIMITS.api
-): Promise<NextResponse | null> {
-    const result = await checkRateLimit(key, config);
-
-    if (!result.allowed) {
-        logger.warn('Rate limit exceeded', { key, resetAt: result.resetAt });
-        return apiError('Too many requests. Please try again later.', 429);
+    identifier: string,
+    config: { limit: number; windowSeconds: number }
+): Promise<Response | null> {
+    const result = await rateLimit(identifier, config.limit, config.windowSeconds);
+    if (!result.success) {
+        const { NextResponse } = await import('next/server');
+        return NextResponse.json(
+            { message: 'Too many requests. Please try again later.' },
+            {
+                status: 429,
+                headers: {
+                    'X-RateLimit-Limit': result.limit.toString(),
+                    'X-RateLimit-Remaining': '0',
+                    'X-RateLimit-Reset': result.reset.toString(),
+                    'Retry-After': String(result.reset - Math.floor(Date.now() / 1000)),
+                },
+            }
+        );
     }
-
     return null;
 }

@@ -10,7 +10,7 @@ import {
 
 const ADMIN_ROLES = ['SUPER_ADMIN', 'MARKET_ADMIN', 'COMPLIANCE_OFFICER', 'SUPPORT_AGENT', 'USER'] as const;
 
-const ROLE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: any }> = {
+const ROLE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: React.ComponentType<Record<string, unknown>> }> = {
     SUPER_ADMIN: { label: 'Super Admin', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.2)', icon: Crown },
     MARKET_ADMIN: { label: 'Market Admin', color: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)', icon: TrendingUp },
     COMPLIANCE_OFFICER: { label: 'Compliance', color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.2)', icon: ShieldCheck },
@@ -38,7 +38,7 @@ interface UserRow {
 }
 
 interface AuditEntry {
-    id: string; action: string; details: any; createdAt: string;
+    id: string; action: string; details: Record<string, unknown> | null; createdAt: string;
     actor: { name: string | null; email: string; role: string };
     target: { name: string | null; email: string; role: string } | null;
 }
@@ -71,7 +71,7 @@ export default function AdminPage() {
     const [showAddAsset, setShowAddAsset] = useState(false);
     const [showAddAnnouncement, setShowAddAnnouncement] = useState(false);
 
-    const currentUserRole = (session?.user as any)?.role || 'USER';
+    const currentUserRole = session?.user?.role || 'USER';
     const isSuperAdmin = currentUserRole === 'SUPER_ADMIN';
     const canSeeStats = ['SUPER_ADMIN', 'MARKET_ADMIN', 'COMPLIANCE_OFFICER'].includes(currentUserRole);
     const canSeeUsers = ['SUPER_ADMIN', 'SUPPORT_AGENT'].includes(currentUserRole);
@@ -310,7 +310,7 @@ export default function AdminPage() {
                                     const rc = ROLE_CONFIG[user.role] || ROLE_CONFIG.USER;
                                     const sc = STATUS_CONFIG[user.status] || STATUS_CONFIG.ACTIVE;
                                     const Ic = rc.icon;
-                                    const isMe = user.id === (session?.user as any)?.id;
+                                    const isMe = user.id === session?.user?.id;
                                     return (
                                         <tr key={user.id} style={{ borderBottom: '1px solid rgba(55,65,81,0.15)' }}>
                                             <td style={{ padding: '0.75rem 1.25rem' }}>

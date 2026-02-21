@@ -3,7 +3,7 @@
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { User, Settings, LogOut, ChevronDown, BarChart3, Briefcase, Shield } from 'lucide-react';
+import { User, Settings, LogOut, ChevronDown, BarChart3, Briefcase, Shield, Star } from 'lucide-react';
 
 export default function UserMenu() {
     const { data: session, status } = useSession();
@@ -40,6 +40,9 @@ export default function UserMenu() {
         <div className="relative" ref={menuRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
+                aria-haspopup="true"
+                aria-expanded={isOpen}
+                aria-label="User menu"
                 className={`flex items-center gap-2.5 px-2 py-1.5 rounded-xl transition-all duration-200 border ${isOpen
                     ? 'bg-gray-800/80 border-gray-700/60'
                     : 'hover:bg-gray-800/50 border-transparent hover:border-gray-700/40'
@@ -110,12 +113,12 @@ export default function UserMenu() {
                             }}
                         >
                             {[
-                                { href: '/profile', icon: User, label: 'Profile', desc: 'Account & API keys' },
-                                { href: '/portfolio', icon: Briefcase, label: 'Portfolio', desc: 'Positions & orders' },
+                                { href: '/portfolio', icon: Briefcase, label: 'Portfolio', desc: 'Holdings & trades' },
+                                { href: '/watchlist', icon: Star, label: 'Watchlist', desc: 'Tracked assets' },
                                 { href: '/finance', icon: BarChart3, label: 'Finance', desc: 'Income, goals & health' },
                                 { href: '/analytics', icon: BarChart3, label: 'Analytics', desc: 'Performance metrics' },
-                                { href: '/settings', icon: Settings, label: 'Settings', desc: 'Preferences' },
-                                ...(['SUPER_ADMIN', 'MARKET_ADMIN', 'COMPLIANCE_OFFICER', 'SUPPORT_AGENT'].includes((session?.user as any)?.role) ? [
+                                { href: '/settings', icon: Settings, label: 'Settings', desc: 'Account & preferences' },
+                                ...(['SUPER_ADMIN', 'MARKET_ADMIN', 'COMPLIANCE_OFFICER', 'SUPPORT_AGENT'].includes(session?.user?.role ?? '') ? [
                                     { href: '/admin', icon: Shield, label: 'Admin', desc: 'Platform management' },
                                 ] : []),
                             ].map((item) => (
@@ -170,10 +173,10 @@ export default function UserMenu() {
                                                 color: '#9ca3af',
                                                 transition: 'color 0.15s'
                                             }}
-                                            onMouseEnter={(e) => {
+                                            onMouseEnter={(e: React.MouseEvent<SVGSVGElement>) => {
                                                 e.currentTarget.style.color = 'white';
                                             }}
-                                            onMouseLeave={(e) => {
+                                            onMouseLeave={(e: React.MouseEvent<SVGSVGElement>) => {
                                                 e.currentTarget.style.color = '#9ca3af';
                                             }}
                                         />

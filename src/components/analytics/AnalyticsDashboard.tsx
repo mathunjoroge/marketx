@@ -5,12 +5,11 @@ import React, { useState, useEffect } from 'react';
 import MetricsGrid from './MetricsGrid';
 import EquityCurveChart from './EquityCurveChart';
 import TradeJournalTable from './TradeJournalTable';
-import { PerformanceMetrics, Trade, EquityPoint } from '@/lib/trading/analytics'; // Import types
+import { PerformanceMetrics, Trade } from '@/lib/trading/analytics';
 
 export default function AnalyticsDashboard() {
     const [timeframe, setTimeframe] = useState('ALL');
     const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
-    const [equityCurve, setEquityCurve] = useState<EquityPoint[]>([]);
     const [trades, setTrades] = useState<Trade[]>([]);
 
     // Pagination state for Journal
@@ -34,25 +33,7 @@ export default function AnalyticsDashboard() {
             const res = await fetch(`/api/analytics/performance?timeframe=${timeframe}`);
             if (res.ok) {
                 const data = await res.json();
-                setMetrics(data); // data now contains ...tradeStats AND totalReturn etc.
-
-                // Oops, the API returns the FULL metrics object. 
-                // But we also need the equity curve itself to pass to the Chart component.
-                // The current API implementation calculates it internally but doesn't return it in the JSON?
-                // Let's check api/analytics/performance route.
-
-                // Re-checking backend route:
-                // const metrics = calculatePerformanceMetrics(...)
-                // return NextResponse.json(metrics);
-                // calculatePerformanceMetrics returns PerformanceMetrics which has properties like winRate, sharpeRatio...
-                // DOES IT RETURN THE CURVE?
-                // Looking at analytics.ts:
-                // interface PerformanceMetrics { totalReturn... tradeStats... }
-                // It does NOT include the curve. Ideally the API should return both.
-
-                // For now, I'll update this component assuming I will Fix the backend to include the curve, 
-                // or I can recalculate it here if I fetch all trades. 
-                // Better: Fix backend response to include curve.
+                setMetrics(data);
             }
         } catch (error) {
             console.error('Failed to fetch performance metrics', error);
@@ -128,10 +109,7 @@ export default function AnalyticsDashboard() {
             ) : metrics ? (
                 <>
                     <MetricsGrid metrics={metrics} />
-
-                    {/* We need to fetch the curve too. I will patch the backend next step. */}
-                    {/* For now, passing empty array to prevent crash if not present */}
-                    <EquityCurveChart equityCurve={(metrics as any).equityCurve || []} />
+                    <EquityCurveChart equityCurve={metrics.equityCurve} />
                 </>
             ) : (
                 <div className="text-center py-10 text-gray-500">Failed to load analytics data.</div>
